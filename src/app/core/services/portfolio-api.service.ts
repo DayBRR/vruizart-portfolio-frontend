@@ -24,6 +24,25 @@ export class PortfolioApiService {
     return this.http.get<CollectionResponse[]>(`${this.baseUrl}/collections`);
   }
 
+  getArtworks(collection?: string): Observable<ArtworkResponse[]> {
+    const params: { [param: string]: string } = {};
+
+    if (collection) {
+      params['collection'] = collection;
+    }
+
+    return this.http.get<ArtworkResponse[]>(
+      `${this.baseUrl}/artworks`,
+      { params }
+    );
+  }
+
+  getArtwork(slug: string): Observable<ArtworkResponse> {
+    return this.http.get<ArtworkResponse>(
+      `${this.baseUrl}/artworks/${encodeURIComponent(slug)}`
+    );
+  }
+
   getFeaturedArtworks(): Observable<ArtworkResponse[]> {
     return this.http.get<ArtworkResponse[]>(
       `${this.baseUrl}/artworks?featured=true`
