@@ -28,7 +28,7 @@
 
 <section class="exhibitions"><div class="section-head"><div class="heading"><h2>Exposiciones</h2><span></span></div><a class="more" routerLink="/exposiciones">Ver todas &nbsp;→</a></div>
  <div #exhibitionGrid class="exhibition-grid" (scroll)="update('exhibitions')" aria-label="Exposiciones individuales de Vicente Ruiz, de más reciente a más antigua">
-  @for (exhibition of exhibitions; track exhibition.title) { <article class="exhibition" [class.exhibition-collective]="exhibition.title==='Colectivas'" [class.has-poster]="!!exhibition.posterUrl" (click)="openPoster(exhibition.posterUrl)"><div class="state">{{exhibition.type}}</div><h3>{{exhibition.title}}</h3><p>{{exhibition.location}}</p>@if(exhibition.dateLabel){<time>{{exhibition.dateLabel}}</time>}</article> }
+  @for (exhibition of exhibitions; track exhibition.title) { <article class="exhibition" [class.exhibition-collective]="exhibition.type === 'COLLECTIVE'" [class.has-poster]="!!exhibition.posterUrl" (click)="openPoster(exhibition.posterUrl)"><div class="state">{{ exhibition.type === 'INDIVIDUAL' ? 'Exposición individual' : 'Exposición colectiva' }}</div><h3>{{exhibition.title}}</h3><p>{{exhibition.location}}</p>@if(exhibition.dateLabel){<time>{{exhibition.dateLabel}}</time>}</article> }
  </div>
  <button class="exhibition-scroll exhibition-prev" [class.is-visible]="exhibitionPrevVisible" type="button" (click)="move('exhibitions',-1)" aria-label="Ver exposiciones anteriores">←</button><button class="exhibition-scroll exhibition-next" [class.is-hidden]="!exhibitionNextVisible" type="button" (click)="move('exhibitions',1)" aria-label="Ver exposiciones más antiguas">→</button>
 </section>
