@@ -1,0 +1,37 @@
+<main class="page">
+<section class="hero">
+  <app-header />
+  <div class="hero-art hero-carousel" aria-label="Imágenes de exposiciones de Vicente Ruiz">
+    @for (slide of heroSlides; track slide.imageUrl; let i = $index) { <img class="hero-slide" [class.is-active]="i===currentHero" [src]="slide.imageUrl" [alt]="slide.altText" [attr.aria-hidden]="i===currentHero ? 'false' : 'true'"> }
+  </div>
+  <div class="hero-copy"><div class="micro">{{ profile.subtitle }}</div><h1>Retrato<br>y paisaje<br>urbano</h1><p>Una pintura que alterna el retrato con escenarios urbanos, deteniéndose en esos rincones que suelen pasar desapercibidos.</p><a class="btn" routerLink="/obra">Ver obra &nbsp;→</a></div>
+  <div class="counter">{{ (currentHero+1).toString().padStart(2,'0') }} &nbsp;&nbsp;—&nbsp;&nbsp; {{ heroSlides.length.toString().padStart(2,'0') }}</div>
+</section>
+
+<section class="collections">
+ <div class="section-head"><div class="heading"><h2>Colecciones</h2><span></span></div><a class="more" routerLink="/colecciones">Ver colecciones &nbsp;→</a></div>
+ <div #collectionGrid class="collection-grid" (scroll)="update('collections')">
+  @for (collection of collections; track collection.slug) { <a class="collection" [routerLink]="['/colecciones',collection.slug]"><img [src]="collection.imageUrl" [alt]="collection.name"><div class="collection-copy"><h3>{{collection.name}}</h3><span>Explorar →</span></div></a> }
+ </div>
+ <button class="collection-scroll collection-prev" [class.is-visible]="collectionPrevVisible" type="button" (click)="move('collections',-1)" aria-label="Ver colecciones anteriores">←</button>
+ <button class="collection-scroll collection-next" [class.is-hidden]="!collectionNextVisible" type="button" (click)="move('collections',1)" aria-label="Ver más colecciones">→</button>
+</section>
+
+<section class="about"><div class="about-copy"><h2>Sobre mí</h2><p>{{profile.bio}}</p><a class="btn" routerLink="/sobre-mi">Conocer más &nbsp;→</a></div><div class="about-img"><img [src]="profile.profileImageUrl" alt="Vicente Ruiz trabajando en su estudio"></div><div class="quote"><blockquote>“{{profile.quote}}”</blockquote><div class="author">Vicente Ruiz</div><div class="qrule"></div></div></section>
+
+<section class="featured"><div class="section-head"><div class="heading"><h2>Obras destacadas</h2><span></span></div><a class="more" routerLink="/obra">Ver toda la obra &nbsp;→</a></div>
+ <div #featuredStrip class="feature-strip" (scroll)="update('featured')" aria-label="Obras destacadas de Vicente Ruiz">
+  @for (work of featuredArtworks; track work.slug) { <article class="featured-work" [class.square]="work.shape==='square'" [class.portrait]="work.shape==='portrait'"><div class="work-img"><img [src]="work.imageUrl" [alt]="work.title + ' — Vicente Ruiz'"></div><div class="meta"><h3>{{work.title}}</h3><p>{{work.year}}</p><div class="rule"></div><p>{{work.technique}}</p><p>{{work.dimensions}}</p><a class="detail" [routerLink]="['/obra',work.slug]">Ver detalle &nbsp;→</a></div></article> }
+ </div>
+ <button class="featured-scroll featured-prev" [class.is-visible]="featuredPrevVisible" type="button" (click)="move('featured',-1)" aria-label="Ver obras anteriores">←</button><button class="featured-scroll featured-next" [class.is-hidden]="!featuredNextVisible" type="button" (click)="move('featured',1)" aria-label="Ver más obras">→</button>
+</section>
+
+<section class="exhibitions"><div class="section-head"><div class="heading"><h2>Exposiciones</h2><span></span></div><a class="more" routerLink="/exposiciones">Ver todas &nbsp;→</a></div>
+ <div #exhibitionGrid class="exhibition-grid" (scroll)="update('exhibitions')" aria-label="Exposiciones individuales de Vicente Ruiz, de más reciente a más antigua">
+  @for (exhibition of exhibitions; track exhibition.title) { <article class="exhibition" [class.exhibition-collective]="exhibition.title==='Colectivas'" [class.has-poster]="!!exhibition.posterUrl" (click)="openPoster(exhibition.posterUrl)"><div class="state">{{exhibition.type}}</div><h3>{{exhibition.title}}</h3><p>{{exhibition.location}}</p>@if(exhibition.dateLabel){<time>{{exhibition.dateLabel}}</time>}</article> }
+ </div>
+ <button class="exhibition-scroll exhibition-prev" [class.is-visible]="exhibitionPrevVisible" type="button" (click)="move('exhibitions',-1)" aria-label="Ver exposiciones anteriores">←</button><button class="exhibition-scroll exhibition-next" [class.is-hidden]="!exhibitionNextVisible" type="button" (click)="move('exhibitions',1)" aria-label="Ver exposiciones más antiguas">→</button>
+</section>
+<app-footer [instagram]="profile.instagram || ''" [email]="profile.email || ''" />
+</main>
+@if(selectedPoster){<div class="poster-modal open" (click)="closePoster()"><button class="poster-close" type="button" aria-label="Cerrar" (click)="closePoster();$event.stopPropagation()">×</button><img [src]="selectedPoster" alt="Cartel de exposición" (click)="$event.stopPropagation()"></div>}
