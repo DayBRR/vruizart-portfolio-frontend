@@ -15,8 +15,11 @@ import { FooterComponent } from '../../shared/footer/footer.component';
 import { PortfolioApiService } from '../../core/services/portfolio-api.service';
 import {
   ArtistProfile,
+  ArtworkResponse,
   CollectionCard,
+  CollectionResponse,
   ExhibitionItem,
+  ExhibitionResponse,
   FeaturedArtwork,
   HeroSlide
 } from '../../core/models/portfolio.models';
@@ -78,9 +81,19 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }).subscribe({
       next: ({ profile, collections, featuredArtworks, exhibitions }) => {
         this.profile = profile;
-        this.collections = collections;
-        this.featuredArtworks = featuredArtworks;
-        this.exhibitions = exhibitions;
+
+        this.collections = collections.map((collection) =>
+          this.mapCollection(collection)
+        );
+
+        this.featuredArtworks = featuredArtworks.map((artwork) =>
+          this.mapArtwork(artwork)
+        );
+
+        this.exhibitions = exhibitions.map((exhibition) =>
+          this.mapExhibition(exhibition)
+        );
+
         this.loading = false;
 
         setTimeout(() => this.updateAll(), 0);
@@ -111,6 +124,82 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.heroTimer) {
       clearInterval(this.heroTimer);
     }
+  }
+
+  private mapCollection(collection: CollectionResponse): CollectionCard {
+  return {
+    name: collection.name,
+    slug: collection.slug,
+    imageUrl: collection.coverImageUrl
+  };
+}
+
+private mapArtwork(artwork: ArtworkResponse): FeaturedArtwork {
+  const width = artwork.widthCm ?? 0;
+  const height = artwork.heightCm ?? 0;
+
+  return {
+    title: artwork.title,
+    slug: artwork.slug,
+    year: artwork.year ?? 0,
+    technique: artwork.technique ?? '',
+    dimensions:
+      width && height
+        ? `${width} × ${height} cm`
+        : '',
+    imageUrl: artwork.mainImage ?? '',
+    shape: width === height ? 'square' : 'portrait'
+  };
+}
+
+private mapExhibition(exhibition: ExhibitionResponse): ExhibitionItem {
+  return {
+    title: exhibition.title,
+    type: exhibition.current ? 'Actual' : 'Exposición',
+    location: exhibition.locationName ?? '',
+    dateLabel: this.formatExhibitionDate(
+      exhibition.startDate,
+      exhibition.endDate
+    ),
+    posterUrl: exhibition.imageUrl
+  };
+}
+
+private formatExhibitionDate(
+  startDate?: string,
+  endDate?: string
+): string {
+    if (!startDate) {
+      return '';
+    }
+
+    const start = new Date(startDate);
+
+    if (!endDate) {
+      return start.toLocaleDateString('es-ES', {
+        month: 'long',
+        year: 'numeric'
+      });
+    }
+
+    const end = new Date(endDate);
+
+    if (start.getFullYear() === end.getFullYear()) {
+      return `${start.toLocaleDateString('es-ES', {
+        month: 'short'
+      })} – ${end.toLocaleDateString('es-ES', {
+        month: 'short',
+        year: 'numeric'
+      })}`;
+    }
+
+    return `${start.toLocaleDateString('es-ES', {
+      month: 'short',
+      year: 'numeric'
+    })} – ${end.toLocaleDateString('es-ES', {
+      month: 'short',
+      year: 'numeric'
+    })}`;
   }
 
   move(
