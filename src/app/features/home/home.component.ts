@@ -155,11 +155,12 @@ private mapArtwork(artwork: ArtworkResponse): FeaturedArtwork {
 private mapExhibition(exhibition: ExhibitionResponse): ExhibitionItem {
   return {
     title: exhibition.title,
-    type: exhibition.current ? 'Actual' : 'Exposición',
+    type: exhibition.type,
     location: exhibition.locationName ?? '',
     dateLabel: this.formatExhibitionDate(
       exhibition.startDate,
-      exhibition.endDate
+      exhibition.endDate,
+      exhibition.year
     ),
     posterUrl: exhibition.imageUrl
   };
@@ -167,10 +168,20 @@ private mapExhibition(exhibition: ExhibitionResponse): ExhibitionItem {
 
 private formatExhibitionDate(
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  year?: number
 ): string {
+    if (!startDate && !endDate) {
+      return year ? year.toString() : '';
+    }
+
     if (!startDate) {
-      return '';
+      return endDate
+        ? new Date(endDate).toLocaleDateString('es-ES', {
+            month: 'long',
+            year: 'numeric'
+          })
+        : year?.toString() ?? '';
     }
 
     const start = new Date(startDate);

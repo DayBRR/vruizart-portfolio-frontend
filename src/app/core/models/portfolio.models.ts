@@ -49,12 +49,16 @@ export interface ArtworkResponse {
   images: ArtworkImageResponse[];
 }
 
+export type ExhibitionType = 'INDIVIDUAL' | 'COLLECTIVE';
+
 export interface ExhibitionResponse {
   title: string;
   slug: string;
+  type: ExhibitionType;
   description?: string;
   startDate?: string;
   endDate?: string;
+  year?: number;
   locationName?: string;
   locationAddress?: string;
   imageUrl?: string;
