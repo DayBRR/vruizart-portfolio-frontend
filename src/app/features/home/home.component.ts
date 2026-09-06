@@ -147,7 +147,7 @@ private mapArtwork(artwork: ArtworkResponse): FeaturedArtwork {
       width && height
         ? `${width} × ${height} cm`
         : '',
-    imageUrl: artwork.mainImage ?? '',
+    imageUrl: artwork.mainImageUrl ?? '',
     shape: width === height ? 'square' : 'portrait'
   };
 }

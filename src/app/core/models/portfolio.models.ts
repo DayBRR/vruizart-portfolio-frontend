@@ -45,7 +45,7 @@ export interface ArtworkResponse {
   collectionName?: string;
   collectionSlug?: string;
   technique?: string;
-  mainImage?: string;
+  mainImageUrl?: string;
   images: ArtworkImageResponse[];
 }
 
