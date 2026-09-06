@@ -21,7 +21,28 @@
 
 <section class="featured"><div class="section-head"><div class="heading"><h2>Obras destacadas</h2><span></span></div><a class="more" routerLink="/obra">Ver toda la obra &nbsp;→</a></div>
  <div #featuredStrip class="feature-strip" (scroll)="update('featured')" aria-label="Obras destacadas de Vicente Ruiz">
-  @for (work of featuredArtworks; track work.slug) { <article class="featured-work" [class.square]="work.shape==='square'" [class.portrait]="work.shape==='portrait'"><div class="work-img"><img [src]="work.imageUrl" [alt]="work.title + ' — Vicente Ruiz'"></div><div class="meta"><h3>{{work.title}}</h3><p>{{work.year}}</p><div class="rule"></div><p>{{work.technique}}</p><p>{{work.dimensions}}</p><a class="detail" [routerLink]="['/obra',work.slug]">Ver detalle &nbsp;→</a></div></article> }
+  @for (work of featuredArtworks; track work.slug) {
+    <a
+      class="featured-work"
+      [class.square]="work.shape==='square'"
+      [class.portrait]="work.shape==='portrait'"
+      [routerLink]="['/obra', work.slug]"
+      [state]="{ from: 'home' }"
+      [attr.aria-label]="'Ver detalle de ' + work.title"
+    >
+      <div class="work-img">
+        <img [src]="work.imageUrl" [alt]="work.title + ' — Vicente Ruiz'">
+      </div>
+      <div class="meta">
+        <h3>{{work.title}}</h3>
+        <p>{{work.year}}</p>
+        <div class="rule"></div>
+        <p>{{work.technique}}</p>
+        <p>{{work.dimensions}}</p>
+        <span class="detail">Ver detalle &nbsp;→</span>
+      </div>
+    </a>
+  }
  </div>
  <button class="featured-scroll featured-prev" [class.is-visible]="featuredPrevVisible" type="button" (click)="move('featured',-1)" aria-label="Ver obras anteriores">←</button><button class="featured-scroll featured-next" [class.is-hidden]="!featuredNextVisible" type="button" (click)="move('featured',1)" aria-label="Ver más obras">→</button>
 </section>

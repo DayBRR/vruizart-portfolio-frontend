@@ -1,0 +1,280 @@
+<main class="page">
+  <section class="hero">
+    <app-header />
+
+    <div class="hero-layout">
+      <div class="hero-copy">
+        <div class="micro">Galería · selección y colecciones</div>
+        <h1>Obra</h1>
+        <p>
+          Una mirada transversal a mi trabajo: retrato, paisaje urbano, música
+          y proyectos de contenido social.
+        </p>
+      </div>
+
+      <div class="hero-grid" aria-label="Selección de obras de Vicente Ruiz">
+        @for (artwork of heroArtworks; track artwork.slug) {
+          <figure>
+            <img
+              [src]="getArtworkImage(artwork)"
+              [alt]="artwork.title"
+            />
+          </figure>
+        }
+      </div>
+    </div>
+  </section>
+
+  @if (loading) {
+    <section class="status-panel">
+      <p>Cargando obra…</p>
+    </section>
+  } @else if (loadError) {
+    <section class="status-panel error">
+      <h2>No se ha podido cargar la galería</h2>
+      <p>Inténtalo de nuevo dentro de unos momentos.</p>
+    </section>
+  } @else {
+    <section class="gallery-intro">
+      <p>
+        Esta galería reúne una selección de obras organizadas por colecciones.
+        Puedes recorrer todo el archivo o centrarte en una serie concreta.
+      </p>
+    </section>
+
+    <section class="filters" aria-label="Filtros de la galería">
+      <div class="filter-top">
+        <span class="result-count">
+          {{ filteredArtworks.length }}
+          {{ filteredArtworks.length === 1 ? 'obra' : 'obras' }}
+        </span>
+      </div>
+
+      <div class="filter-row">
+        <button
+          type="button"
+          class="chip"
+          [class.active]="selectedCollection === 'all'"
+          [disabled]="filtering"
+          (click)="filterByCollection('all')"
+        >
+          Todas
+        </button>
+
+        @for (collection of collections; track collection.slug) {
+          <button
+            type="button"
+            class="chip"
+            [class.active]="selectedCollection === collection.slug"
+            [disabled]="filtering"
+            (click)="filterByCollection(collection.slug)"
+          >
+            {{ collection.name }}
+          </button>
+        }
+      </div>
+    </section>
+
+    <section class="gallery-section">
+      <div class="gallery-head">
+        <h2>
+          {{
+            selectedCollection === 'all'
+              ? 'Galería'
+              : 'Colección'
+          }}
+        </h2>
+
+        <span class="hint">Selecciona una obra para verla en detalle</span>
+      </div>
+
+      @if (filtering) {
+        <div class="gallery-loading">
+          Cargando colección…
+        </div>
+      } @else if (filterError) {
+        <div class="empty show">
+          No se ha podido cargar esta colección.
+        </div>
+      } @else if (filteredArtworks.length) {
+        <div class="art-grid">
+          @for (artwork of filteredArtworks; track artwork.slug) {
+            <article
+              class="art-card"
+              tabindex="0"
+              role="button"
+              (click)="openArtwork(artwork)"
+              (keydown.enter)="openArtwork(artwork)"
+              (keydown.space)="$event.preventDefault(); openArtwork(artwork)"
+              [attr.aria-label]="'Ver detalle de ' + artwork.title"
+            >
+              <div class="art-image-wrap">
+                @if (getArtworkImage(artwork)) {
+                  <img
+                    [src]="getArtworkImage(artwork)"
+                    [alt]="artwork.title"
+                    loading="lazy"
+                  />
+                }
+
+                <div class="art-hover" aria-hidden="true">
+                  <span>Ver obra</span>
+                </div>
+              </div>
+
+              <div class="art-caption">
+                <h3>{{ artwork.title }}</h3>
+                <p>
+                  @if (artwork.year) {
+                    {{ artwork.year }}
+                  }
+                  @if (artwork.year && artwork.technique) {
+                    ·
+                  }
+                  @if (artwork.technique) {
+                    {{ artwork.technique }}
+                  }
+                </p>
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="empty show">
+          No hay obras disponibles en esta colección.
+        </div>
+      }
+    </section>
+  }
+
+  <app-footer
+    [instagram]="profile.instagram || ''"
+    [email]="profile.email || ''"
+  />
+</main>
+
+@if (selectedArtwork) {
+  <div class="lightbox open" (click)="closeArtwork()">
+    <div
+      class="lightbox-shell"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'Detalle de ' + selectedArtwork.title"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        type="button"
+        class="lb-close"
+        aria-label="Cerrar detalle"
+        (click)="closeArtwork()"
+      >
+        ×
+      </button>
+
+      <div class="lightbox-image">
+        @if (selectedImageUrl) {
+          <img
+            [src]="selectedImageUrl"
+            [alt]="selectedImageAlt"
+          />
+        }
+
+        @if (selectedArtworkImages.length > 1) {
+          <button
+            type="button"
+            class="lb-nav lb-prev"
+            aria-label="Imagen anterior"
+            (click)="previousImage()"
+          >
+            ‹
+          </button>
+
+          <button
+            type="button"
+            class="lb-nav lb-next"
+            aria-label="Imagen siguiente"
+            (click)="nextImage()"
+          >
+            ›
+          </button>
+        }
+      </div>
+
+      <aside class="lb-info">
+        <div class="micro">
+          {{ selectedArtwork.collectionName || 'Obra' }}
+        </div>
+
+        <h2>{{ selectedArtwork.title }}</h2>
+        <div class="lb-rule"></div>
+
+        @if (selectedArtwork.description) {
+          <p class="lb-description">
+            {{ selectedArtwork.description }}
+          </p>
+        }
+
+        <dl class="lb-facts">
+          <div>
+            <dt>Año</dt>
+            <dd>{{ selectedArtwork.year || '—' }}</dd>
+          </div>
+
+          <div>
+            <dt>Técnica</dt>
+            <dd>{{ selectedArtwork.technique || '—' }}</dd>
+          </div>
+
+          <div>
+            <dt>Dimensiones</dt>
+            <dd>{{ getDimensions(selectedArtwork) }}</dd>
+          </div>
+
+          <div>
+            <dt>Colección</dt>
+            <dd>{{ selectedArtwork.collectionName || '—' }}</dd>
+          </div>
+
+          <div>
+            <dt>Estado</dt>
+            <dd>{{ getStatusLabel(selectedArtwork.status) }}</dd>
+          </div>
+
+          @if (selectedArtwork.price !== undefined && selectedArtwork.price !== null) {
+            <div>
+              <dt>Precio</dt>
+              <dd>{{ formatPrice(selectedArtwork.price) }}</dd>
+            </div>
+          }
+        </dl>
+
+        @if (selectedArtworkImages.length > 1) {
+          <div class="lb-thumbs">
+            @for (
+              image of selectedArtworkImages;
+              track image.imageUrl;
+              let index = $index
+            ) {
+              <button
+                type="button"
+                class="lb-thumb"
+                [class.active]="selectedImageIndex === index"
+                (click)="selectImage(index)"
+                [attr.aria-label]="'Ver imagen ' + (index + 1)"
+              >
+                <img
+                  [src]="image.imageUrl"
+                  [alt]="image.altText || selectedArtwork.title"
+                />
+              </button>
+            }
+          </div>
+
+          <div class="lb-index">
+            {{ selectedImageIndex + 1 }} / {{ selectedArtworkImages.length }}
+          </div>
+        }
+      </aside>
+    </div>
+  </div>
+}
