@@ -1,0 +1,206 @@
+<main class="page">
+  <section class="hero">
+    <app-header />
+
+    <div class="hero-layout">
+      <div class="hero-left">
+        <div class="micro">
+          Trayectoria expositiva
+          @if (trajectoryRange) {
+            · {{ trajectoryRange }}
+          }
+        </div>
+
+        <h1>Exposiciones</h1>
+
+        <p>
+          Una selección cronológica de exposiciones individuales, proyectos y
+          muestras que recorren distintas etapas de mi trabajo.
+        </p>
+      </div>
+
+      <div
+        class="hero-collage"
+        aria-label="Selección de carteles de exposiciones de Vicente Ruiz"
+      >
+        @for (exhibition of heroExhibitions; track exhibition.slug) {
+          <figure>
+            <img
+              [src]="exhibition.imageUrl"
+              [alt]="'Cartel de ' + exhibition.title"
+            />
+          </figure>
+        }
+      </div>
+    </div>
+  </section>
+
+  @if (loading) {
+    <section class="status-panel">
+      <p>Cargando exposiciones…</p>
+    </section>
+  } @else if (loadError) {
+    <section class="status-panel error">
+      <h2>No se han podido cargar las exposiciones</h2>
+      <p>Inténtalo de nuevo dentro de unos momentos.</p>
+    </section>
+  } @else {
+    <section class="intro">
+      <h2>Recorrido</h2>
+      <p>
+        Las exposiciones individuales reúnen las principales líneas de mi
+        trabajo: el retrato, la mirada humana, el paisaje urbano, la música y
+        una creciente preocupación por la dimensión social de la imagen.
+      </p>
+    </section>
+
+    <section class="individual-section">
+      <div class="timeline-head">
+        <h2>Exposiciones individuales</h2>
+        <span>De la más reciente a la más antigua</span>
+      </div>
+
+      @for (
+        exhibition of individualExhibitions;
+        track exhibition.slug;
+        let index = $index
+      ) {
+        <article class="show-row" [class.reverse]="index % 2 === 1">
+          <button
+            class="poster-wrap"
+            type="button"
+            [class.is-clickable]="!!exhibition.imageUrl"
+            [disabled]="!exhibition.imageUrl"
+            (click)="openPoster(exhibition)"
+            [attr.aria-label]="
+              exhibition.imageUrl
+                ? 'Ampliar cartel de ' + exhibition.title
+                : null
+            "
+          >
+            @if (exhibition.imageUrl) {
+              <img
+                class="poster"
+                [src]="exhibition.imageUrl"
+                [alt]="'Cartel de ' + exhibition.title"
+              />
+            } @else {
+              <span class="poster-placeholder">Sin cartel disponible</span>
+            }
+
+            @if (exhibition.year) {
+              <span class="year-stamp">{{ exhibition.year }}</span>
+            }
+          </button>
+
+          <div class="show-copy">
+            <div class="eyebrow">
+              {{
+                exhibition.current
+                  ? 'Exposición individual · Actual'
+                  : 'Exposición individual'
+              }}
+            </div>
+
+            <h2>{{ exhibition.title }}</h2>
+            <div class="line"></div>
+
+            @if (exhibition.description) {
+              <p class="description">{{ exhibition.description }}</p>
+            }
+
+            <dl class="facts">
+              <div>
+                <dt>Fechas</dt>
+                <dd>{{ formatDateRange(exhibition) }}</dd>
+              </div>
+
+              <div>
+                <dt>Lugar</dt>
+                <dd>{{ exhibition.locationName || '—' }}</dd>
+              </div>
+
+              <div>
+                <dt>Dirección</dt>
+                <dd>{{ exhibition.locationAddress || '—' }}</dd>
+              </div>
+
+              <div>
+                <dt>Tipo</dt>
+                <dd>Exposición individual</dd>
+              </div>
+            </dl>
+          </div>
+        </article>
+      }
+    </section>
+
+    @if (collectiveGroups.length) {
+      <section class="collective-full">
+        <div class="collective-intro">
+          <div>
+            <div class="eyebrow">Trayectoria compartida</div>
+            <h2>Exposiciones colectivas</h2>
+          </div>
+
+          <p>
+            Participaciones en muestras colectivas, certámenes y proyectos
+            compartidos con otros artistas, ordenadas cronológicamente.
+          </p>
+        </div>
+
+        <div class="collective-timeline">
+          @for (group of collectiveGroups; track group.year) {
+            <div class="collective-year">
+              <div class="collective-year-label">{{ group.year }}</div>
+
+              <div class="collective-year-entries">
+                @for (exhibition of group.exhibitions; track exhibition.slug) {
+                  <article class="collective-item">
+                    <h3>{{ exhibition.title }}</h3>
+
+                    @if (exhibition.locationName) {
+                      <p class="collective-place">
+                        {{ exhibition.locationName }}
+                      </p>
+                    }
+
+                    @if (exhibition.description) {
+                      <p class="collective-works">
+                        {{ exhibition.description }}
+                      </p>
+                    }
+                  </article>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+
+  <app-footer
+    [instagram]="profile.instagram || ''"
+    [email]="profile.email || ''"
+  />
+</main>
+
+@if (selectedPoster) {
+  <div class="poster-modal open" (click)="closePoster()">
+    <button
+      class="poster-close"
+      type="button"
+      aria-label="Cerrar cartel"
+      (click)="closePoster(); $event.stopPropagation()"
+    >
+      ×
+    </button>
+
+    <img
+      [src]="selectedPoster"
+      [alt]="selectedPosterAlt"
+      (click)="$event.stopPropagation()"
+    />
+  </div>
+}
