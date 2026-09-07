@@ -1,0 +1,119 @@
+name: Deploy frontend
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: vruizart-frontend-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/vruizart_deploy
+          chmod 600 ~/.ssh/vruizart_deploy
+
+          ssh-keyscan -p "$VPS_PORT" -H "$VPS_HOST" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Check SSH key fingerprint
+        run: |
+          ssh-keygen -lf ~/.ssh/vruizart_deploy
+
+      - name: Test SSH connection
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          ssh \
+            -i ~/.ssh/vruizart_deploy \
+            -o IdentitiesOnly=yes \
+            -o BatchMode=yes \
+            -p "$VPS_PORT" \
+            "$VPS_USER@$VPS_HOST" \
+            "echo SSH_OK"
+
+      - name: Upload frontend
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          rsync \
+            -az \
+            --delete \
+            -e "ssh -i ~/.ssh/vruizart_deploy -o IdentitiesOnly=yes -p $VPS_PORT" \
+            dist/vruizart-portfolio-frontend/browser/ \
+            "$VPS_USER@$VPS_HOST:/home/dayb/apps/vruizart-portfolio/frontend/browser/"
+
+      - name: Restart frontend
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          ssh \
+            -i ~/.ssh/vruizart_deploy \
+            -o IdentitiesOnly=yes \
+            -o BatchMode=yes \
+            -p "$VPS_PORT" \
+            "$VPS_USER@$VPS_HOST" << 'EOF'
+
+          set -e
+
+          cd ~/apps/vruizart-portfolio
+
+          docker compose restart frontend
+          docker compose ps frontend
+
+          EOF
+
+      - name: Verify deployment
+        run: |
+          echo "Waiting for frontend..."
+
+          for i in {1..12}; do
+            echo "Attempt $i/12"
+
+            if curl --fail --silent --show-error \
+              https://vruizart.com > /dev/null; then
+              echo "Frontend deployment OK"
+              exit 0
+            fi
+
+            sleep 5
+          done
+
+          echo "Frontend did not become available in time"
+          exit 1
