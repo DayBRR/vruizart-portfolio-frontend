@@ -6,7 +6,8 @@ import {
   ArtistProfile,
   ArtworkResponse,
   CollectionResponse,
-  ExhibitionResponse
+  ExhibitionResponse,
+  PublicationResponse
 } from '../models/portfolio.models';
 
 import { environment } from '../../../environments/environment';
@@ -52,6 +53,25 @@ export class PortfolioApiService {
   getExhibitions(): Observable<ExhibitionResponse[]> {
     return this.http.get<ExhibitionResponse[]>(
       `${this.baseUrl}/exhibitions`
+    );
+  }
+
+  getPublications(featured?: boolean): Observable<PublicationResponse[]> {
+    const params: { [param: string]: string } = {};
+
+    if (featured !== undefined) {
+      params['featured'] = String(featured);
+    }
+
+    return this.http.get<PublicationResponse[]>(
+      `${this.baseUrl}/publications`,
+      { params }
+    );
+  }
+
+  getPublication(slug: string): Observable<PublicationResponse> {
+    return this.http.get<PublicationResponse>(
+      `${this.baseUrl}/publications/${encodeURIComponent(slug)}`
     );
   }
 }

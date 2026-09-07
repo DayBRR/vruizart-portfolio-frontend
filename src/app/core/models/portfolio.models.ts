@@ -66,7 +66,42 @@ export interface ExhibitionResponse {
   sortOrder: number;
 }
 
-/* Modelos usados por la Home */
+export type PublicationType =
+  | 'PRESS'
+  | 'MAGAZINE'
+  | 'BOOK'
+  | 'CATALOG'
+  | 'WEB_ARTICLE'
+  | 'VIDEO'
+  | 'PODCAST'
+  | 'TV'
+  | 'RADIO'
+  | 'OTHER';
+
+export interface PublicationImageResponse {
+  imageUrl: string;
+  altText?: string;
+  sortOrder: number;
+  cover: boolean;
+}
+
+export interface PublicationResponse {
+  title: string;
+  slug: string;
+  publicationType: PublicationType;
+  publisherName?: string;
+  authorName?: string;
+  publicationDate?: string;
+  publicationYear?: number;
+  description?: string;
+  externalUrl?: string;
+  coverImageUrl?: string;
+  fileUrl?: string;
+  reference?: string;
+  featured: boolean;
+  sortOrder: number;
+  images: PublicationImageResponse[];
+}
 
 export interface CollectionCard {
   name: string;
