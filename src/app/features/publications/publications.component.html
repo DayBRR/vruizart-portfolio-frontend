@@ -1,0 +1,313 @@
+<main class="page">
+  <section class="hero">
+    <app-header />
+
+    <div class="hero-layout">
+      <div class="hero-left">
+        <div class="micro">Archivo editorial · 2020—2026</div>
+        <h1>Publicaciones</h1>
+        <p>
+          Revistas, catálogos, prensa y guías de arte en las que mi obra ha
+          formado parte de la edición impresa.
+        </p>
+      </div>
+
+      <div class="hero-publications">
+        @for (publication of heroPublications; track publication.slug; let index = $index) {
+          <button
+            type="button"
+            class="hero-cover"
+            [class.hero-cover-primary]="index === 0"
+            (click)="openImage(publication.coverImageUrl, publication.title)"
+          >
+            <img [src]="publication.coverImageUrl" [alt]="publication.title" />
+          </button>
+        }
+      </div>
+    </div>
+  </section>
+
+  @if (loading) {
+    <section class="state">
+      <p>Cargando publicaciones…</p>
+    </section>
+  } @else if (loadError) {
+    <section class="state state-error">
+      <p>No se han podido cargar las publicaciones.</p>
+    </section>
+  } @else {
+    <section class="intro">
+      <h2>Obra<br />impresa</h2>
+      <p>
+        Las publicaciones permiten conservar otra dimensión de la trayectoria
+        artística: la obra dentro de revistas, libros-catálogo, certámenes,
+        prensa y guías internacionales. Este archivo reúne las ediciones
+        documentadas desde 2020.
+      </p>
+    </section>
+
+    @if (featuredPublication; as featured) {
+      <section class="featured">
+        <div class="featured-head">
+          <div>
+            <div class="eyebrow">Publicación destacada</div>
+            <h2>{{ featured.title }}</h2>
+          </div>
+
+          @if (featured.description) {
+            <p>{{ featured.description }}</p>
+          }
+        </div>
+
+        <div class="featured-layout">
+          <div class="featured-cover-column">
+            <button
+              class="featured-cover"
+              type="button"
+              (click)="openImage(featured.coverImageUrl, featured.title)"
+            >
+              @if (featured.coverImageUrl) {
+                <img
+                  [src]="featured.coverImageUrl"
+                  [alt]="featured.title"
+                />
+              } @else {
+                <div class="cover-placeholder">
+                  <span>{{ getYear(featured) }}</span>
+                  <strong>{{ featured.title }}</strong>
+                </div>
+              }
+            </button>
+          </div>
+
+          <div class="featured-gallery">
+            @for (
+              image of getPublicationImages(featured).slice(1);
+              track image.imageUrl
+            ) {
+              <button
+                type="button"
+                class="featured-shot"
+                (click)="openImage(image.imageUrl, image.altText || featured.title)"
+              >
+                <img
+                  [src]="image.imageUrl"
+                  [alt]="image.altText || featured.title"
+                />
+              </button>
+            }
+
+            <div class="featured-copy">
+              <div class="featured-year">{{ getYear(featured) }}</div>
+              <div class="eyebrow">{{ getMeta(featured) }}</div>
+
+              @if (featured.reference) {
+                <div class="reference">{{ featured.reference }}</div>
+              }
+
+              <div class="featured-actions">
+                @if (featured.fileUrl) {
+                  <button
+                    type="button"
+                    class="pdf-btn"
+                    (click)="openPdf(featured)"
+                  >
+                    Ver publicación completa →
+                  </button>
+                }
+
+                @if (featured.externalUrl) {
+                  <a
+                    class="external-link"
+                    [href]="featured.externalUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Abrir enlace externo →
+                  </a>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+    <section class="archive-head">
+      <h2>Archivo de publicaciones</h2>
+      <span>De la más reciente a la más antigua</span>
+    </section>
+
+    <section class="archive">
+      @for (
+        publication of archivePublications;
+        track publication.slug;
+        let index = $index
+      ) {
+        <article
+          class="pub-row"
+          [class.reverse]="index % 2 !== 0"
+        >
+          <div class="pub-visual">
+            @if (publication.coverImageUrl) {
+              <button
+                type="button"
+                class="main-image"
+                (click)="openImage(
+                  publication.coverImageUrl,
+                  publication.title
+                )"
+              >
+                <img
+                  [src]="publication.coverImageUrl"
+                  [alt]="publication.title"
+                  loading="lazy"
+                />
+              </button>
+
+              @if (getPublicationImages(publication).length > 1) {
+                <div class="thumbs">
+                  @for (
+                    image of getPublicationImages(publication);
+                    track image.imageUrl
+                  ) {
+                    <button
+                      type="button"
+                      class="thumb"
+                      (click)="openImage(
+                        image.imageUrl,
+                        image.altText || publication.title
+                      )"
+                    >
+                      <img
+                        [src]="image.imageUrl"
+                        [alt]="image.altText || publication.title"
+                        loading="lazy"
+                      />
+                    </button>
+                  }
+                </div>
+              }
+            } @else {
+              <div class="placeholder-visual">
+                <div class="placeholder-cover">
+                  <span class="placeholder-year">
+                    {{ getYear(publication) }}
+                  </span>
+                  <strong>{{ publication.title }}</strong>
+                  <small>
+                    {{ getPublicationTypeLabel(publication.publicationType) }}
+                  </small>
+                  <em>Vicente Ruiz</em>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="pub-copy">
+            <div class="pub-year">{{ getYear(publication) }}</div>
+            <div class="eyebrow">{{ getMeta(publication) }}</div>
+            <h2>{{ publication.title }}</h2>
+            <div class="rule"></div>
+
+            @if (publication.description) {
+              <p>{{ publication.description }}</p>
+            }
+
+            @if (publication.reference) {
+              <div class="work-note">
+                {{ publication.reference }}
+              </div>
+            }
+
+            <div class="row-actions">
+              @if (publication.fileUrl) {
+                <button
+                  type="button"
+                  class="text-link"
+                  (click)="openPdf(publication)"
+                >
+                  Ver publicación →
+                </button>
+              }
+
+              @if (publication.externalUrl) {
+                <a
+                  class="text-link"
+                  [href]="publication.externalUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Visitar enlace →
+                </a>
+              }
+            </div>
+          </div>
+        </article>
+      }
+
+      @if (!archivePublications.length && !featuredPublication) {
+        <div class="empty">
+          Todavía no hay publicaciones disponibles.
+        </div>
+      }
+    </section>
+  }
+
+  @if (lightboxImage) {
+    <div
+      class="lightbox"
+      role="dialog"
+      aria-modal="true"
+      (click)="closeImage()"
+    >
+      <button
+        class="lb-close"
+        type="button"
+        aria-label="Cerrar imagen"
+        (click)="closeImage(); $event.stopPropagation()"
+      >
+        ×
+      </button>
+
+      <img
+        [src]="lightboxImage"
+        [alt]="lightboxAlt"
+        (click)="$event.stopPropagation()"
+      />
+    </div>
+  }
+
+  @if (pdfPublication && safePdfUrl) {
+    <div class="pdf-modal" role="dialog" aria-modal="true">
+      <button
+        class="pdf-close"
+        type="button"
+        aria-label="Cerrar publicación"
+        (click)="closePdf()"
+      >
+        ×
+      </button>
+
+      <div class="pdf-shell">
+        <div class="pdf-bar">
+          <strong>{{ pdfPublication.title }}</strong>
+          <span>Documento PDF</span>
+        </div>
+
+        <iframe
+          class="pdf-frame"
+          [src]="safePdfUrl"
+          [title]="pdfPublication.title"
+        ></iframe>
+      </div>
+    </div>
+  }
+
+  @if (profile) {
+    <app-footer
+      [instagram]="profile.instagram || ''"
+      [email]="profile.email || ''"
+    />
+  }
+</main>
