@@ -1,0 +1,167 @@
+<main class="page">
+  <section class="hero-shell">
+    <app-header />
+
+    @if (loading) {
+      <div class="state-block">Cargando...</div>
+    } @else if (loadError) {
+      <div class="state-block error">No se ha podido cargar la información.</div>
+    } @else {
+      <div class="hero">
+        <div class="hero-copy">
+          <div class="micro">Artista plástico · Zaragoza</div>
+          <h1>{{ item('about.hero')?.title }}</h1>
+          <p>{{ item('about.hero')?.content }}</p>
+        </div>
+
+        <div class="hero-image">
+          <img
+            [src]="item('about.hero')?.imageUrl"
+            alt="Vicente Ruiz trabajando en su estudio"
+          />
+        </div>
+      </div>
+    }
+  </section>
+
+  @if (!loading && !loadError) {
+    <section class="bio">
+      <div class="bio-title">
+        <div class="eyebrow">Biografía</div>
+        <h2>{{ item('about.bio')?.title }}</h2>
+      </div>
+
+      <div class="bio-copy preserve-lines">
+        {{ item('about.bio')?.content }}
+      </div>
+    </section>
+
+    <section class="quote-band">
+      <blockquote>{{ item('about.quote')?.content }}</blockquote>
+      <div class="signature">{{ item('about.quote')?.title }}</div>
+    </section>
+
+    <section class="axes">
+      <div class="axes-head">
+        <h2>{{ item('about.axes.intro')?.title }}</h2>
+        <p>{{ item('about.axes.intro')?.content }}</p>
+      </div>
+
+      <div class="axes-grid">
+        @for (axis of axes; track axis.key) {
+          <article class="axis-card">
+            <div class="axis-image">
+              <img [src]="axis.imageUrl" [alt]="axis.title ?? ''" />
+            </div>
+            <div class="axis-copy">
+              <div class="eyebrow">Línea de trabajo</div>
+              <h3>{{ axis.title }}</h3>
+              <p>{{ axis.content }}</p>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
+    <section class="process">
+      <div class="process-intro">
+        <h2>{{ item('about.process.intro')?.title }}</h2>
+        <p>{{ item('about.process.intro')?.content }}</p>
+      </div>
+
+      <div class="process-steps">
+        @for (step of processSteps; track step.key; let i = $index) {
+          <div class="step">
+            <div class="step-num">0{{ i + 1 }}</div>
+            <strong>{{ step.title }}</strong>
+            <span>{{ step.content }}</span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="social-project">
+      <div class="social-img">
+        <img
+          [src]="item('about.social-project')?.imageUrl"
+          [alt]="item('about.social-project')?.title ?? ''"
+        />
+      </div>
+
+      <div class="social-copy">
+        <div class="eyebrow">Proyecto actual</div>
+        <h2>{{ item('about.social-project')?.title }}</h2>
+        <div class="line"></div>
+        <div class="preserve-lines">{{ item('about.social-project')?.content }}</div>
+        <a class="text-link" routerLink="/obra">Ver la obra</a>
+      </div>
+    </section>
+
+    <section class="trajectory">
+      <div class="trajectory-head">
+        <h2>{{ item('about.trajectory.intro')?.title }}</h2>
+        <p>{{ item('about.trajectory.intro')?.content }}</p>
+      </div>
+
+      <div class="timeline">
+        @for (exhibition of exhibitions; track exhibition.slug) {
+          <div class="year-row">
+            <div class="year">{{ exhibitionYear(exhibition) }}</div>
+            <div class="year-copy">
+              <h3>{{ exhibition.title }}</h3>
+              <p>
+                {{ exhibition.locationName }}
+                @if (exhibition.description) {
+                  · {{ exhibition.description }}
+                }
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="trajectory-link">
+        <a class="text-link" routerLink="/exposiciones">Ver todas las exposiciones</a>
+      </div>
+    </section>
+
+    <section class="projection">
+      <div class="projection-head">
+        <h2>{{ item('about.publications.intro')?.title }}</h2>
+        <p>{{ item('about.publications.intro')?.content }}</p>
+      </div>
+
+      <div class="projection-grid">
+        @for (publication of publications; track publication.slug) {
+          <article class="proj-card">
+            @if (publicationImage(publication); as imageUrl) {
+              <div class="proj-image">
+                <img [src]="imageUrl" [alt]="publication.title" />
+              </div>
+            }
+            <div class="eyebrow">{{ publicationYear(publication) }}</div>
+            <h3>{{ publication.title }}</h3>
+            <p>{{ publication.publisherName || publication.reference || publication.description }}</p>
+          </article>
+        }
+      </div>
+
+      <div class="projection-link">
+        <a class="text-link" routerLink="/publicaciones">Ver todas las publicaciones</a>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div>
+        <h2>{{ item('about.cta')?.title }}</h2>
+        <p>{{ item('about.cta')?.content }}</p>
+      </div>
+      <a class="cta-btn" routerLink="/obra">Descubrir la obra</a>
+    </section>
+  }
+
+  <app-footer
+    [instagram]="profile.instagram ?? ''"
+    [email]="profile.email ?? ''"
+  />
+</main>

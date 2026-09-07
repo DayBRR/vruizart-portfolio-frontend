@@ -7,7 +7,8 @@ import {
   ArtworkResponse,
   CollectionResponse,
   ExhibitionResponse,
-  PublicationResponse
+  PublicationResponse,
+  SiteContentResponse
 } from '../models/portfolio.models';
 
 import { environment } from '../../../environments/environment';
@@ -67,6 +68,10 @@ export class PortfolioApiService {
       `${this.baseUrl}/publications`,
       { params }
     );
+  }
+
+  getSiteContent(): Observable<SiteContentResponse[]> {
+    return this.http.get<SiteContentResponse[]>(`${this.baseUrl}/content`);
   }
 
   getPublication(slug: string): Observable<PublicationResponse> {

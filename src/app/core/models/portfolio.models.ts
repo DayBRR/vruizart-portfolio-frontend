@@ -126,3 +126,15 @@ export interface ExhibitionItem {
   dateLabel: string;
   posterUrl?: string;
 }
+
+
+export type SiteContentType = 'TEXT' | 'TEXT_IMAGE' | 'QUOTE';
+
+export interface SiteContentResponse {
+  key: string;
+  title?: string;
+  content?: string;
+  type: SiteContentType;
+  imageUrl?: string;
+  sortOrder: number;
+}
