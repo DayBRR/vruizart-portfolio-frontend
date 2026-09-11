@@ -45,6 +45,15 @@ export class ArtworksComponent implements OnInit {
   selectedArtwork?: ArtworkResponse;
   selectedImageIndex = 0;
 
+  get selectedCollectionData(): CollectionResponse | undefined {
+    if (this.selectedCollection === 'all') {
+      return undefined;
+    }
+
+    return this.collections.find(
+      collection => collection.slug === this.selectedCollection
+    );
+  }
   pageSize = 12;
   currentPage = 0;
   totalPages = 0;
