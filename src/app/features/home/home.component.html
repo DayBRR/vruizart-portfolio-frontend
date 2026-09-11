@@ -80,7 +80,7 @@
 </section>
 
 <section class="collections">
- <div class="section-head"><div class="heading"><h2>Colecciones</h2><span></span></div><a class="more" routerLink="/colecciones">Ver colecciones &nbsp;→</a></div>
+ <div class="section-head"><div class="heading"><h2>Colecciones</h2><span></span></div><a class="more" routerLink="/obra">Ver colecciones &nbsp;→</a></div>
  <div #collectionGrid class="collection-grid" (scroll)="update('collections')">
  @for (collection of collections; track collection.slug) {
     <a

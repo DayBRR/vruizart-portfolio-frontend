@@ -89,13 +89,21 @@
 
     <section class="gallery-section">
       <div class="gallery-head">
-        <h2>
-          {{
-            selectedCollection === 'all'
-              ? 'Galería'
-              : 'Colección'
-          }}
-        </h2>
+        <div class="gallery-title">
+          <h2>
+            {{
+              selectedCollection === 'all'
+                ? 'Galería'
+                : selectedCollectionData?.name
+            }}
+          </h2>
+
+          @if (selectedCollectionData?.description) {
+            <p class="collection-description">
+              {{ selectedCollectionData?.description }}
+            </p>
+          }
+        </div>
 
         <span class="hint">
           Selecciona una obra para verla en detalle
@@ -316,6 +324,11 @@
             <dd>{{ getStatusLabel(selectedArtwork.status) }}</dd>
           </div>
 
+            <div>
+              <dt>Precio</dt>
+              <dd> - Consultar -</dd>
+            </div>
+          <!--
           @if (
             selectedArtwork.price !== undefined &&
             selectedArtwork.price !== null
@@ -325,6 +338,7 @@
               <dd>{{ formatPrice(selectedArtwork.price) }}</dd>
             </div>
           }
+            -->
         </dl>
 
         @if (selectedArtworkImages.length > 1) {
