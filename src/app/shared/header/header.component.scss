@@ -1,15 +1,108 @@
-:host{display:contents}.topbar{position:relative;z-index:5;height:58px;padding:14px 60px 0;display:grid;grid-template-columns:305px 1fr 100px;align-items:start;background:linear-gradient(90deg,#615d57 0 343px,#aaa59e 343px 100%)}.logo{color:white;font-family:Georgia,serif;font-size:23px;letter-spacing:.20em;text-transform:uppercase;line-height:1}.nav{display:flex;justify-content:flex-start;gap:24px;padding-top:8px;font-family:Georgia,serif;font-size:12px;white-space:nowrap}.nav a{color:inherit;text-decoration:none}.nav a:first-child{border-bottom:1px solid;padding-bottom:5px}.lang{padding-top:7px;text-align:right;font-size:8px;letter-spacing:.16em}
-
-@media (max-width:900px){
-  :host{display:block}
-  .topbar{height:72px;padding:0 28px;display:grid;grid-template-columns:1fr auto;align-items:center;background:rgba(91,87,81,.96)}
-  .logo{font-size:21px;white-space:nowrap}
-  .nav{display:none}
-  .lang{padding:0;font-size:8px;color:#fff}
+:host {
+  display: contents;
 }
 
-@media (max-width:600px){
-  .topbar{height:72px;padding:0 20px;background:rgba(91,87,81,.96)}
-  .logo{font-size:20px;letter-spacing:.16em}
-  .lang{font-size:7px;letter-spacing:.12em}
+.topbar {
+  position: relative;
+  z-index: 5;
+
+  height: 58px;
+  padding: 14px 60px 0;
+
+  display: grid;
+  grid-template-columns: 305px 1fr 100px;
+  align-items: start;
+
+  background: linear-gradient(
+    90deg,
+    #615d57 0 343px,
+    #aaa59e 343px 100%
+  );
+}
+
+.logo {
+  color: white;
+  font-family: Georgia, serif;
+  font-size: 23px;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.nav {
+  display: flex;
+  justify-content: flex-start;
+  gap: 24px;
+  padding-top: 8px;
+  font-family: Georgia, serif;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.nav a {
+  color: inherit;
+  text-decoration: none;
+  padding-bottom: 5px;
+  border-bottom: 1px solid transparent;
+}
+
+.nav a.active {
+  border-bottom-color: currentColor;
+}
+
+.lang {
+  padding-top: 7px;
+  text-align: right;
+  font-size: 8px;
+  letter-spacing: 0.16em;
+}
+
+@media (max-width: 900px) {
+  :host {
+    display: block;
+  }
+
+  .topbar {
+    height: 72px;
+    padding: 0 28px;
+
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+
+    background: rgba(91, 87, 81, 0.96);
+  }
+
+  .logo {
+    font-size: 21px;
+    white-space: nowrap;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .lang {
+    padding: 0;
+    font-size: 8px;
+    color: #fff;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    height: 72px;
+    padding: 0 20px;
+    background: rgba(91, 87, 81, 0.96);
+  }
+
+  .logo {
+    font-size: 20px;
+    letter-spacing: 0.16em;
+  }
+
+  .lang {
+    font-size: 7px;
+    letter-spacing: 0.12em;
+  }
 }
