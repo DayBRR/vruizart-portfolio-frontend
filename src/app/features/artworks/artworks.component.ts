@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import {
@@ -22,8 +22,6 @@ import { HeaderComponent } from '../../shared/header/header.component';
 export class ArtworksComponent implements OnInit {
   private readonly portfolioApi = inject(PortfolioApiService);
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly navigationState = history.state as { from?: string };
 
   profile: ArtistProfile = {
     name: '',
@@ -196,39 +194,14 @@ export class ArtworksComponent implements OnInit {
     this.loadArtworksPage(page);
   }
 
-  openArtwork(
-    artwork: ArtworkResponse,
-    updateRoute = true
-  ): void {
+  openArtwork(artwork: ArtworkResponse): void {
     this.selectedArtwork = artwork;
-    this.selectedImageIndex =
-      this.getInitialImageIndex(artwork);
-
-    if (updateRoute) {
-      void this.router.navigate(
-        ['/obra', artwork.slug],
-        {
-          replaceUrl: false
-        }
-      );
-    }
+    this.selectedImageIndex = this.getInitialImageIndex(artwork);
   }
 
   closeArtwork(): void {
     this.selectedArtwork = undefined;
     this.selectedImageIndex = 0;
-
-    const destination =
-      this.navigationState.from === 'home'
-        ? '/'
-        : '/obra';
-
-    void this.router.navigate(
-      [destination],
-      {
-        replaceUrl: true
-      }
-    );
   }
 
   previousImage(): void {
@@ -424,8 +397,7 @@ export class ArtworksComponent implements OnInit {
       .subscribe({
         next: (artwork) => {
           this.openArtwork(
-            artwork,
-            false
+            artwork
           );
         },
         error: (error) => {
