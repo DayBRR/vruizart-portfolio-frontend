@@ -7,6 +7,7 @@ import {
   ArtworkResponse,
   CollectionResponse,
   ExhibitionResponse,
+  PageResponse,
   PublicationResponse,
   SiteContentResponse
 } from '../models/portfolio.models';
@@ -26,28 +27,41 @@ export class PortfolioApiService {
     return this.http.get<CollectionResponse[]>(`${this.baseUrl}/collections`);
   }
 
-  getArtworks(collection?: string): Observable<ArtworkResponse[]> {
-    const params: { [param: string]: string } = {};
+  getArtworks(
+    collection?: string,
+    page = 0,
+    size = 12
+  ): Observable<PageResponse<ArtworkResponse>> {
+    const params: { [param: string]: string } = {
+      page: String(page),
+      size: String(size)
+    };
 
     if (collection) {
       params['collection'] = collection;
     }
 
-    return this.http.get<ArtworkResponse[]>(
+    return this.http.get<PageResponse<ArtworkResponse>>(
       `${this.baseUrl}/artworks`,
       { params }
+    );
+  }
+
+  getHeroArtworks(): Observable<ArtworkResponse[]> {
+    return this.http.get<ArtworkResponse[]>(
+      `${this.baseUrl}/artworks/hero`
+    );
+  }
+
+  getFeaturedArtworks(): Observable<ArtworkResponse[]> {
+    return this.http.get<ArtworkResponse[]>(
+      `${this.baseUrl}/artworks/featured`
     );
   }
 
   getArtwork(slug: string): Observable<ArtworkResponse> {
     return this.http.get<ArtworkResponse>(
       `${this.baseUrl}/artworks/${encodeURIComponent(slug)}`
-    );
-  }
-
-  getFeaturedArtworks(): Observable<ArtworkResponse[]> {
-    return this.http.get<ArtworkResponse[]>(
-      `${this.baseUrl}/artworks?featured=true`
     );
   }
 
