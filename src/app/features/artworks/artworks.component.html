@@ -5,14 +5,19 @@
     <div class="hero-layout">
       <div class="hero-copy">
         <div class="micro">Galería · selección y colecciones</div>
+
         <h1>Obra</h1>
+
         <p>
           Una mirada transversal a mi trabajo: retrato, paisaje urbano, música
           y proyectos de contenido social.
         </p>
       </div>
 
-      <div class="hero-grid" aria-label="Selección de obras de Vicente Ruiz">
+      <div
+        class="hero-grid"
+        aria-label="Selección de obras de Vicente Ruiz"
+      >
         @for (artwork of heroArtworks; track artwork.slug) {
           <figure>
             <img
@@ -32,6 +37,7 @@
   } @else if (loadError) {
     <section class="status-panel error">
       <h2>No se ha podido cargar la galería</h2>
+
       <p>Inténtalo de nuevo dentro de unos momentos.</p>
     </section>
   } @else {
@@ -42,11 +48,14 @@
       </p>
     </section>
 
-    <section class="filters" aria-label="Filtros de la galería">
+    <section
+      class="filters"
+      aria-label="Filtros de la galería"
+    >
       <div class="filter-top">
         <span class="result-count">
-          {{ filteredArtworks.length }}
-          {{ filteredArtworks.length === 1 ? 'obra' : 'obras' }}
+          {{ totalElements }}
+          {{ totalElements === 1 ? 'obra' : 'obras' }}
         </span>
       </div>
 
@@ -85,12 +94,14 @@
           }}
         </h2>
 
-        <span class="hint">Selecciona una obra para verla en detalle</span>
+        <span class="hint">
+          Selecciona una obra para verla en detalle
+        </span>
       </div>
 
       @if (filtering) {
         <div class="gallery-loading">
-          Cargando colección…
+          Cargando obras…
         </div>
       } @else if (filterError) {
         <div class="empty show">
@@ -117,20 +128,26 @@
                   />
                 }
 
-                <div class="art-hover" aria-hidden="true">
+                <div
+                  class="art-hover"
+                  aria-hidden="true"
+                >
                   <span>Ver obra</span>
                 </div>
               </div>
 
               <div class="art-caption">
                 <h3>{{ artwork.title }}</h3>
+
                 <p>
                   @if (artwork.year) {
                     {{ artwork.year }}
                   }
+
                   @if (artwork.year && artwork.technique) {
                     ·
                   }
+
                   @if (artwork.technique) {
                     {{ artwork.technique }}
                   }
@@ -139,6 +156,58 @@
             </article>
           }
         </div>
+
+        @if (totalPages > 1) {
+          <nav
+            class="pagination"
+            aria-label="Paginación de obras"
+          >
+            <button
+              type="button"
+              class="pagination-btn pagination-prev"
+              [disabled]="currentPage === 0 || filtering"
+              (click)="previousPage()"
+            >
+              ← Anterior
+            </button>
+
+            <div class="pagination-pages">
+              @for (
+                _ of [].constructor(totalPages);
+                track i;
+                let i = $index
+              ) {
+                <button
+                  type="button"
+                  class="pagination-page"
+                  [class.active]="i === currentPage"
+                  [disabled]="filtering"
+                  (click)="goToPage(i)"
+                  [attr.aria-label]="'Ir a la página ' + (i + 1)"
+                  [attr.aria-current]="i === currentPage ? 'page' : null"
+                >
+                  {{ i + 1 }}
+                </button>
+              }
+            </div>
+
+            <button
+              type="button"
+              class="pagination-btn pagination-next"
+              [disabled]="
+                currentPage === totalPages - 1 ||
+                filtering
+              "
+              (click)="nextPage()"
+            >
+              Siguiente →
+            </button>
+          </nav>
+
+          <div class="pagination-info">
+            Página {{ currentPage + 1 }} de {{ totalPages }}
+          </div>
+        }
       } @else {
         <div class="empty show">
           No hay obras disponibles en esta colección.
@@ -154,7 +223,10 @@
 </main>
 
 @if (selectedArtwork) {
-  <div class="lightbox open" (click)="closeArtwork()">
+  <div
+    class="lightbox open"
+    (click)="closeArtwork()"
+  >
     <div
       class="lightbox-shell"
       role="dialog"
@@ -206,6 +278,7 @@
         </div>
 
         <h2>{{ selectedArtwork.title }}</h2>
+
         <div class="lb-rule"></div>
 
         @if (selectedArtwork.description) {
@@ -240,7 +313,10 @@
             <dd>{{ getStatusLabel(selectedArtwork.status) }}</dd>
           </div>
 
-          @if (selectedArtwork.price !== undefined && selectedArtwork.price !== null) {
+          @if (
+            selectedArtwork.price !== undefined &&
+            selectedArtwork.price !== null
+          ) {
             <div>
               <dt>Precio</dt>
               <dd>{{ formatPrice(selectedArtwork.price) }}</dd>
@@ -271,7 +347,8 @@
           </div>
 
           <div class="lb-index">
-            {{ selectedImageIndex + 1 }} / {{ selectedArtworkImages.length }}
+            {{ selectedImageIndex + 1 }} /
+            {{ selectedArtworkImages.length }}
           </div>
         }
       </aside>

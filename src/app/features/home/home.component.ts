@@ -35,6 +35,8 @@ import { HERO_SLIDES } from '../../core/services/mock-portfolio.data';
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly portfolioApi = inject(PortfolioApiService);
 
+  selectedImageIndex = 0;
+
   profile: ArtistProfile = {
     name: '',
     subtitle: '',
@@ -70,7 +72,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   exhibitionPrevVisible = false;
   exhibitionNextVisible = true;
 
-  selectedPoster?: string;
+  selectedPoster?: 
+  string;selectedArtwork?: ArtworkResponse;
+
+  private featuredArtworkDetails = new Map<string, ArtworkResponse>();
 
   ngOnInit(): void {
     forkJoin({
@@ -84,6 +89,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.collections = collections.map((collection) =>
           this.mapCollection(collection)
+        );
+
+        this.featuredArtworks = featuredArtworks.map((artwork) =>
+          this.mapArtwork(artwork)
+        );
+
+        this.featuredArtworkDetails = new Map(
+          featuredArtworks.map((artwork) => [artwork.slug, artwork])
         );
 
         this.featuredArtworks = featuredArtworks.map((artwork) =>
@@ -279,6 +292,88 @@ private formatExhibitionDate(
     this.update('collections');
     this.update('featured');
     this.update('exhibitions');
+  }
+
+  openArtwork(slug: string): void {
+    const artwork = this.featuredArtworkDetails.get(slug);
+
+    if (!artwork) {
+      return;
+    }
+
+    this.selectedArtwork = artwork;
+  }
+
+  closeArtwork(): void {
+    this.selectedArtwork = undefined;
+  }
+
+  get selectedImageUrl(): string {
+    if (!this.selectedArtwork) {
+      return '';
+    }
+
+    return (
+      this.selectedArtwork.mainImageUrl ??
+      this.selectedArtwork.images?.[0]?.imageUrl ??
+      ''
+    );
+  }
+
+  get selectedImageAlt(): string {
+    return this.selectedArtwork?.title ?? 'Obra de Vicente Ruiz';
+  }
+
+  getDimensions(artwork: ArtworkResponse): string {
+    if (!artwork.widthCm || !artwork.heightCm) {
+      return '—';
+    }
+
+    return `${this.formatNumber(artwork.widthCm)} × ${this.formatNumber(
+      artwork.heightCm
+    )} cm`;
+  }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'AVAILABLE':
+        return 'Disponible';
+
+      case 'SOLD':
+        return 'Vendida';
+
+      case 'PRIVATE_COLLECTION':
+        return 'Colección privada';
+
+      case 'NOT_FOR_SALE':
+        return 'No disponible';
+
+      default:
+        return status
+          .toLowerCase()
+          .replaceAll('_', ' ')
+          .replace(/^./, (value) => value.toUpperCase());
+    }
+  }
+
+  formatPrice(price?: number): string {
+    if (price === undefined || price === null) {
+      return '—';
+    }
+
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: 0
+    }).format(price);
+  }
+
+  private formatNumber(value: number): string {
+    return Number.isInteger(value)
+      ? value.toString()
+      : value.toLocaleString('es-ES', {
+          maximumFractionDigits: 2
+        });
   }
 
   openPoster(url?: string): void {

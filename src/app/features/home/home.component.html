@@ -11,7 +11,23 @@
 <section class="collections">
  <div class="section-head"><div class="heading"><h2>Colecciones</h2><span></span></div><a class="more" routerLink="/colecciones">Ver colecciones &nbsp;→</a></div>
  <div #collectionGrid class="collection-grid" (scroll)="update('collections')">
-  @for (collection of collections; track collection.slug) { <a class="collection" [routerLink]="['/colecciones',collection.slug]"><img [src]="collection.imageUrl" [alt]="collection.name"><div class="collection-copy"><h3>{{collection.name}}</h3><span>Explorar →</span></div></a> }
+ @for (collection of collections; track collection.slug) {
+    <a
+      class="collection"
+      [routerLink]="['/obra']"
+      [queryParams]="{ collection: collection.slug }"
+    >
+      <img
+        [src]="collection.imageUrl"
+        [alt]="collection.name"
+      >
+
+      <div class="collection-copy">
+        <h3>{{ collection.name }}</h3>
+        <span>Explorar →</span>
+      </div>
+    </a>
+  }
  </div>
  <button class="collection-scroll collection-prev" [class.is-visible]="collectionPrevVisible" type="button" (click)="move('collections',-1)" aria-label="Ver colecciones anteriores">←</button>
  <button class="collection-scroll collection-next" [class.is-hidden]="!collectionNextVisible" type="button" (click)="move('collections',1)" aria-label="Ver más colecciones">→</button>
@@ -22,12 +38,15 @@
 <section class="featured"><div class="section-head"><div class="heading"><h2>Obras destacadas</h2><span></span></div><a class="more" routerLink="/obra">Ver toda la obra &nbsp;→</a></div>
  <div #featuredStrip class="feature-strip" (scroll)="update('featured')" aria-label="Obras destacadas de Vicente Ruiz">
   @for (work of featuredArtworks; track work.slug) {
-    <a
+    <article
       class="featured-work"
-      [class.square]="work.shape==='square'"
-      [class.portrait]="work.shape==='portrait'"
-      [routerLink]="['/obra', work.slug]"
-      [state]="{ from: 'home' }"
+      [class.square]="work.shape === 'square'"
+      [class.portrait]="work.shape === 'portrait'"
+      tabindex="0"
+      role="button"
+      (click)="openArtwork(work.slug)"
+      (keydown.enter)="openArtwork(work.slug)"
+      (keydown.space)="$event.preventDefault(); openArtwork(work.slug)"
       [attr.aria-label]="'Ver detalle de ' + work.title"
     >
       <div class="work-img">
@@ -41,11 +60,97 @@
         <p>{{work.dimensions}}</p>
         <span class="detail">Ver detalle &nbsp;→</span>
       </div>
-    </a>
+    </article>
   }
  </div>
  <button class="featured-scroll featured-prev" [class.is-visible]="featuredPrevVisible" type="button" (click)="move('featured',-1)" aria-label="Ver obras anteriores">←</button><button class="featured-scroll featured-next" [class.is-hidden]="!featuredNextVisible" type="button" (click)="move('featured',1)" aria-label="Ver más obras">→</button>
 </section>
+
+@if (selectedArtwork) {
+  <div
+    class="artwork-modal open"
+    (click)="closeArtwork()"
+  >
+    <div
+      class="artwork-modal-shell"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'Detalle de ' + selectedArtwork.title"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        class="artwork-modal-close"
+        type="button"
+        aria-label="Cerrar detalle"
+        (click)="closeArtwork()"
+      >
+        ×
+      </button>
+
+      <div class="artwork-modal-image">
+        @if (selectedImageUrl) {
+          <img
+            [src]="selectedImageUrl"
+            [alt]="selectedImageAlt"
+          />
+        }
+      </div>
+
+      <aside class="artwork-modal-info">
+        <div class="micro">
+          {{ selectedArtwork.collectionName || 'Obra' }}
+        </div>
+
+        <h2>{{ selectedArtwork.title }}</h2>
+
+        <div class="artwork-modal-rule"></div>
+
+        @if (selectedArtwork.description) {
+          <p class="artwork-modal-description">
+            {{ selectedArtwork.description }}
+          </p>
+        }
+
+        <dl class="artwork-modal-facts">
+          <div>
+            <dt>Año</dt>
+            <dd>{{ selectedArtwork.year || '—' }}</dd>
+          </div>
+
+          <div>
+            <dt>Técnica</dt>
+            <dd>{{ selectedArtwork.technique || '—' }}</dd>
+          </div>
+
+          <div>
+            <dt>Dimensiones</dt>
+            <dd>{{ getDimensions(selectedArtwork) }}</dd>
+          </div>
+
+          <div>
+            <dt>Colección</dt>
+            <dd>{{ selectedArtwork.collectionName || '—' }}</dd>
+          </div>
+
+          <div>
+            <dt>Estado</dt>
+            <dd>{{ getStatusLabel(selectedArtwork.status) }}</dd>
+          </div>
+
+          @if (
+            selectedArtwork.price !== undefined &&
+            selectedArtwork.price !== null
+          ) {
+            <div>
+              <dt>Precio</dt>
+              <dd>{{ formatPrice(selectedArtwork.price) }}</dd>
+            </div>
+          }
+        </dl>
+      </aside>
+    </div>
+  </div>
+}
 
 <section class="exhibitions"><div class="section-head"><div class="heading"><h2>Exposiciones</h2><span></span></div><a class="more" routerLink="/exposiciones">Ver todas &nbsp;→</a></div>
  <div #exhibitionGrid class="exhibition-grid" (scroll)="update('exhibitions')" aria-label="Exposiciones individuales de Vicente Ruiz, de más reciente a más antigua">

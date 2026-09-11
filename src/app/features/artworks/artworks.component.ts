@@ -23,7 +23,6 @@ export class ArtworksComponent implements OnInit {
   private readonly portfolioApi = inject(PortfolioApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly navigationState = history.state as { from?: string };
 
   profile: ArtistProfile = {
     name: '',
@@ -36,6 +35,7 @@ export class ArtworksComponent implements OnInit {
   };
 
   collections: CollectionResponse[] = [];
+
   artworks: ArtworkResponse[] = [];
   filteredArtworks: ArtworkResponse[] = [];
   heroArtworks: ArtworkResponse[] = [];
@@ -44,38 +44,70 @@ export class ArtworksComponent implements OnInit {
   selectedArtwork?: ArtworkResponse;
   selectedImageIndex = 0;
 
+  pageSize = 12;
+  currentPage = 0;
+  totalPages = 0;
+  totalElements = 0;
+
   loading = true;
   loadError = false;
   filtering = false;
   filterError = false;
 
   ngOnInit(): void {
+    const collectionFromQuery =
+      this.route.snapshot.queryParamMap.get('collection');
+
+    this.selectedCollection =
+      collectionFromQuery || 'all';
+
+    const collection =
+      this.selectedCollection === 'all'
+        ? undefined
+        : this.selectedCollection;
     forkJoin({
       profile: this.portfolioApi.getProfile(),
       collections: this.portfolioApi.getCollections(),
-      artworks: this.portfolioApi.getArtworks()
+      artworksPage: this.portfolioApi.getArtworks(
+        undefined,
+        0,
+        this.pageSize
+      ),
+      heroArtworks: this.portfolioApi.getHeroArtworks()
     }).subscribe({
-      next: ({ profile, collections, artworks }) => {
+      next: ({
+        profile,
+        collections,
+        artworksPage,
+        heroArtworks
+      }) => {
         this.profile = profile;
 
         this.collections = [...collections].sort(
           (a, b) => a.sortOrder - b.sortOrder
         );
 
-        this.artworks = [...artworks].sort((a, b) =>
-          this.compareArtworks(a, b)
+        this.artworks = artworksPage.content;
+        this.filteredArtworks = artworksPage.content;
+
+        this.currentPage = artworksPage.page.number;
+        this.totalPages = artworksPage.page.totalPages;
+        this.totalElements = artworksPage.page.totalElements;
+
+        this.heroArtworks = heroArtworks.filter(
+          (artwork) => !!this.getArtworkImage(artwork)
         );
 
-        this.filteredArtworks = this.artworks;
-        this.heroArtworks = this.artworks
-          .filter((artwork) => !!this.getArtworkImage(artwork))
-          .slice(0, 3);
-
         this.loading = false;
+
         this.openArtworkFromRoute();
       },
       error: (error) => {
-        console.error('Error loading artworks page data', error);
+        console.error(
+          'Error loading artworks page data',
+          error
+        );
+
         this.loading = false;
         this.loadError = true;
       }
@@ -83,104 +115,187 @@ export class ArtworksComponent implements OnInit {
   }
 
   filterByCollection(slug: string): void {
-    if (this.filtering || slug === this.selectedCollection) {
+    if (
+      this.filtering ||
+      slug === this.selectedCollection
+    ) {
       return;
     }
 
     this.selectedCollection = slug;
+    this.currentPage = 0;
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        collection: slug === 'all'
+          ? null
+          : slug
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+
+    this.loadArtworksPage(0);
+  }
+
+  loadArtworksPage(page: number): void {
     this.filtering = true;
     this.filterError = false;
 
-    const collection = slug === 'all' ? undefined : slug;
+    const collection =
+      this.selectedCollection === 'all'
+        ? undefined
+        : this.selectedCollection;
 
-    this.portfolioApi.getArtworks(collection).subscribe({
-      next: (artworks) => {
-        this.filteredArtworks = [...artworks].sort((a, b) =>
-          this.compareArtworks(a, b)
-        );
-        this.filtering = false;
-      },
-      error: (error) => {
-        console.error('Error filtering artworks', error);
-        this.filtering = false;
-        this.filterError = true;
-      }
-    });
+    this.portfolioApi
+      .getArtworks(
+        collection,
+        page,
+        this.pageSize
+      )
+      .subscribe({
+        next: (response) => {
+          this.artworks = response.content;
+          this.filteredArtworks = response.content;
+
+          this.currentPage = response.page.number;
+          this.totalPages = response.page.totalPages;
+          this.totalElements = response.page.totalElements;
+
+          this.filtering = false;
+        },
+        error: (error) => {
+          console.error(
+            'Error loading artworks page',
+            error
+          );
+
+          this.filtering = false;
+          this.filterError = true;
+        }
+      });
   }
 
-  openArtwork(artwork: ArtworkResponse, updateRoute = true): void {
+  previousPage(): void {
+    if (
+      this.currentPage <= 0 ||
+      this.filtering
+    ) {
+      return;
+    }
+
+    this.loadArtworksPage(
+      this.currentPage - 1
+    );
+  }
+
+  nextPage(): void {
+    if (
+      this.currentPage >= this.totalPages - 1 ||
+      this.filtering
+    ) {
+      return;
+    }
+
+    this.loadArtworksPage(
+      this.currentPage + 1
+    );
+  }
+
+  goToPage(page: number): void {
+    if (
+      page < 0 ||
+      page >= this.totalPages ||
+      page === this.currentPage ||
+      this.filtering
+    ) {
+      return;
+    }
+
+    this.loadArtworksPage(page);
+  }
+
+  openArtwork(artwork: ArtworkResponse): void {
     this.selectedArtwork = artwork;
     this.selectedImageIndex = this.getInitialImageIndex(artwork);
-
-    if (updateRoute) {
-      void this.router.navigate(['/obra', artwork.slug], {
-        replaceUrl: false
-      });
-    }
   }
 
   closeArtwork(): void {
     this.selectedArtwork = undefined;
     this.selectedImageIndex = 0;
-
-    const destination =
-      this.navigationState.from === 'home'
-        ? '/'
-        : '/obra';
-
-    void this.router.navigate([destination], {
-      replaceUrl: true
-    });
   }
 
   previousImage(): void {
-    const images = this.selectedArtworkImages;
+    const images =
+      this.selectedArtworkImages;
 
     if (images.length <= 1) {
       return;
     }
 
     this.selectedImageIndex =
-      (this.selectedImageIndex - 1 + images.length) % images.length;
+      (
+        this.selectedImageIndex -
+        1 +
+        images.length
+      ) %
+      images.length;
   }
 
   nextImage(): void {
-    const images = this.selectedArtworkImages;
+    const images =
+      this.selectedArtworkImages;
 
     if (images.length <= 1) {
       return;
     }
 
     this.selectedImageIndex =
-      (this.selectedImageIndex + 1) % images.length;
+      (
+        this.selectedImageIndex + 1
+      ) %
+      images.length;
   }
 
   selectImage(index: number): void {
-    if (index < 0 || index >= this.selectedArtworkImages.length) {
+    if (
+      index < 0 ||
+      index >=
+        this.selectedArtworkImages.length
+    ) {
       return;
     }
 
     this.selectedImageIndex = index;
   }
 
-  get selectedArtworkImages(): ArtworkImageResponse[] {
+  get selectedArtworkImages():
+    ArtworkImageResponse[] {
     if (!this.selectedArtwork) {
       return [];
     }
 
-    const images = [...(this.selectedArtwork.images ?? [])].sort(
-      (a, b) => a.sortOrder - b.sortOrder
+    const images = [
+      ...(this.selectedArtwork.images ?? [])
+    ].sort(
+      (a, b) =>
+        a.sortOrder - b.sortOrder
     );
 
     if (
       this.selectedArtwork.mainImageUrl &&
       !images.some(
-        (image) => image.imageUrl === this.selectedArtwork?.mainImageUrl
+        (image) =>
+          image.imageUrl ===
+          this.selectedArtwork?.mainImageUrl
       )
     ) {
       images.unshift({
-        imageUrl: this.selectedArtwork.mainImageUrl,
-        altText: this.selectedArtwork.title,
+        imageUrl:
+          this.selectedArtwork.mainImageUrl,
+        altText:
+          this.selectedArtwork.title,
         sortOrder: -1,
         main: true
       });
@@ -191,7 +306,9 @@ export class ArtworksComponent implements OnInit {
 
   get selectedImageUrl(): string {
     return (
-      this.selectedArtworkImages[this.selectedImageIndex]?.imageUrl ??
+      this.selectedArtworkImages[
+        this.selectedImageIndex
+      ]?.imageUrl ??
       this.selectedArtwork?.mainImageUrl ??
       ''
     );
@@ -199,25 +316,39 @@ export class ArtworksComponent implements OnInit {
 
   get selectedImageAlt(): string {
     return (
-      this.selectedArtworkImages[this.selectedImageIndex]?.altText ??
+      this.selectedArtworkImages[
+        this.selectedImageIndex
+      ]?.altText ??
       this.selectedArtwork?.title ??
       'Obra de Vicente Ruiz'
     );
   }
 
-  getArtworkImage(artwork: ArtworkResponse): string {
+  getArtworkImage(
+    artwork: ArtworkResponse
+  ): string {
     return (
       artwork.mainImageUrl ??
       artwork.images
         ?.slice()
-        .sort((a, b) => a.sortOrder - b.sortOrder)[0]?.imageUrl ??
+        .sort(
+          (a, b) =>
+            a.sortOrder - b.sortOrder
+        )[0]?.imageUrl ??
       ''
     );
   }
 
-  getDimensions(artwork: ArtworkResponse): string {
-    if (artwork.widthCm && artwork.heightCm) {
-      return `${this.formatNumber(artwork.widthCm)} × ${this.formatNumber(
+  getDimensions(
+    artwork: ArtworkResponse
+  ): string {
+    if (
+      artwork.widthCm &&
+      artwork.heightCm
+    ) {
+      return `${this.formatNumber(
+        artwork.widthCm
+      )} × ${this.formatNumber(
         artwork.heightCm
       )} cm`;
     }
@@ -225,75 +356,111 @@ export class ArtworksComponent implements OnInit {
     return '—';
   }
 
-  getStatusLabel(status: string): string {
+  getStatusLabel(
+    status: string
+  ): string {
     switch (status) {
       case 'AVAILABLE':
         return 'Disponible';
+
       case 'SOLD':
         return 'Vendida';
+
       case 'PRIVATE_COLLECTION':
         return 'Colección privada';
+
       case 'NOT_FOR_SALE':
         return 'No disponible';
+
       default:
         return status
           .toLowerCase()
           .replaceAll('_', ' ')
-          .replace(/^./, (value) => value.toUpperCase());
+          .replace(
+            /^./,
+            (value) =>
+              value.toUpperCase()
+          );
     }
   }
 
-  formatPrice(price?: number): string {
-    if (price === undefined || price === null) {
+  formatPrice(
+    price?: number
+  ): string {
+    if (
+      price === undefined ||
+      price === null
+    ) {
       return '—';
     }
 
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'EUR',
-      maximumFractionDigits: 0
-    }).format(price);
+    return new Intl.NumberFormat(
+      'es-ES',
+      {
+        style: 'currency',
+        currency: 'EUR',
+        maximumFractionDigits: 0
+      }
+    ).format(price);
   }
 
   private openArtworkFromRoute(): void {
-    const slug = this.route.snapshot.paramMap.get('slug');
+    const slug =
+      this.route.snapshot.paramMap.get(
+        'slug'
+      );
 
     if (!slug) {
       return;
     }
 
-    const artwork = this.artworks.find((item) => item.slug === slug);
-
-    if (artwork) {
-      this.openArtwork(artwork, false);
-    }
+    this.portfolioApi
+      .getArtwork(slug)
+      .subscribe({
+        next: (artwork) => {
+          this.openArtwork(
+            artwork
+          );
+        },
+        error: (error) => {
+          console.error(
+            'Error loading artwork from route',
+            error
+          );
+        }
+      });
   }
 
-  private getInitialImageIndex(artwork: ArtworkResponse): number {
-    const sortedImages = [...(artwork.images ?? [])].sort(
-      (a, b) => a.sortOrder - b.sortOrder
+  private getInitialImageIndex(
+    artwork: ArtworkResponse
+  ): number {
+    const sortedImages = [
+      ...(artwork.images ?? [])
+    ].sort(
+      (a, b) =>
+        a.sortOrder - b.sortOrder
     );
 
-    const mainIndex = sortedImages.findIndex((image) => image.main);
+    const mainIndex =
+      sortedImages.findIndex(
+        (image) => image.main
+      );
 
-    return mainIndex >= 0 ? mainIndex : 0;
+    return mainIndex >= 0
+      ? mainIndex
+      : 0;
   }
 
-  private compareArtworks(a: ArtworkResponse, b: ArtworkResponse): number {
-    const yearDifference = (b.year ?? 0) - (a.year ?? 0);
-
-    if (yearDifference !== 0) {
-      return yearDifference;
-    }
-
-    return a.title.localeCompare(b.title, 'es');
-  }
-
-  private formatNumber(value: number): string {
+  private formatNumber(
+    value: number
+  ): string {
     return Number.isInteger(value)
       ? value.toString()
-      : value.toLocaleString('es-ES', {
-          maximumFractionDigits: 2
-        });
+      : value.toLocaleString(
+          'es-ES',
+          {
+            maximumFractionDigits: 2
+          }
+        );
   }
 }
