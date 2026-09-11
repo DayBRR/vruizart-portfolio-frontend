@@ -39,8 +39,8 @@ h3 {
 
 .hero-layout {
   display: grid;
-  grid-template-columns: 34% 66%;
-  height: 320px;
+  grid-template-columns: 343px 1fr;
+  height: 300px;
 }
 
 .hero-left {

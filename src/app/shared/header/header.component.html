@@ -1,1 +1,54 @@
-<header class="topbar"><div class="logo">Vicente Ruiz</div><nav class="nav"><a routerLink="/">Inicio</a><a routerLink="/obra">Obra</a><a routerLink="/exposiciones">Exposiciones</a><a routerLink="/publicaciones">Publicaciones</a><a routerLink="/sobre-mi">Sobre mí</a><a routerLink="/contacto">Contacto</a></nav><div class="lang">ES &nbsp;/&nbsp; EN</div></header>
+<header class="topbar">
+  <div class="logo">
+    Vicente Ruiz
+  </div>
+
+  <nav class="nav">
+    <a
+      routerLink="/"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      Inicio
+    </a>
+
+    <a
+      routerLink="/obra"
+      routerLinkActive="active"
+    >
+      Obra
+    </a>
+
+    <a
+      routerLink="/exposiciones"
+      routerLinkActive="active"
+    >
+      Exposiciones
+    </a>
+
+    <a
+      routerLink="/publicaciones"
+      routerLinkActive="active"
+    >
+      Publicaciones
+    </a>
+
+    <a
+      routerLink="/sobre-mi"
+      routerLinkActive="active"
+    >
+      Sobre mí
+    </a>
+
+    <a
+      routerLink="/contacto"
+      routerLinkActive="active"
+    >
+      Contacto
+    </a>
+  </nav>
+
+  <div class="lang">
+    ES &nbsp;/&nbsp; EN
+  </div>
+</header>
