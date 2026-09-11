@@ -21,9 +21,8 @@ import {
   ExhibitionItem,
   ExhibitionResponse,
   FeaturedArtwork,
-  HeroSlide
+  SiteContentResponse
 } from '../../core/models/portfolio.models';
-import { HERO_SLIDES } from '../../core/services/mock-portfolio.data';
 
 @Component({
   selector: 'app-home',
@@ -46,10 +45,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     instagram: '',
     email: ''
   };
-
-  // El hero sigue siendo local por ahora porque PortfolioApiService
-  // todavía no expone un endpoint específico para sus imágenes.
-  readonly heroSlides: HeroSlide[] = HERO_SLIDES;
+  heroSlides: SiteContentResponse[] = [];
 
   collections: CollectionCard[] = [];
   featuredArtworks: FeaturedArtwork[] = [];
@@ -80,19 +76,29 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     forkJoin({
       profile: this.portfolioApi.getProfile(),
+      heroSlides: this.portfolioApi.getHeroContent(),
       collections: this.portfolioApi.getCollections(),
       featuredArtworks: this.portfolioApi.getFeaturedArtworks(),
       exhibitions: this.portfolioApi.getExhibitions()
     }).subscribe({
-      next: ({ profile, collections, featuredArtworks, exhibitions }) => {
+      next: ({
+        profile,
+        heroSlides,
+        collections,
+        featuredArtworks,
+        exhibitions
+      }) => {
         this.profile = profile;
+
+        this.heroSlides = [...heroSlides].sort(
+          (a, b) => a.sortOrder - b.sortOrder
+        );
+
+        this.currentHero = 0;
+        this.startHeroCarousel();
 
         this.collections = collections.map((collection) =>
           this.mapCollection(collection)
-        );
-
-        this.featuredArtworks = featuredArtworks.map((artwork) =>
-          this.mapArtwork(artwork)
         );
 
         this.featuredArtworkDetails = new Map(
@@ -119,17 +125,30 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  ngAfterViewInit(): void {
-    if (
-      this.heroSlides.length > 1 &&
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
-      this.heroTimer = window.setInterval(
-        () => this.currentHero = (this.currentHero + 1) % this.heroSlides.length,
-        5000
-      );
+  private startHeroCarousel(): void {
+    if (this.heroTimer) {
+      clearInterval(this.heroTimer);
+      this.heroTimer = undefined;
     }
 
+    if (
+      this.heroSlides.length <= 1 ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
+
+    this.heroTimer = window.setInterval(() => {
+      this.currentHero =
+        (this.currentHero + 1) % this.heroSlides.length;
+    }, 5000);
+  }
+
+  get currentHeroSlide(): SiteContentResponse | undefined {
+    return this.heroSlides[this.currentHero];
+  }
+
+  ngAfterViewInit(): void {
     setTimeout(() => this.updateAll(), 0);
   }
 

@@ -128,15 +128,30 @@ export interface ExhibitionItem {
 }
 
 
-export type SiteContentType = 'TEXT' | 'TEXT_IMAGE' | 'QUOTE';
+export type SiteContentType =
+  | 'TEXT'
+  | 'IMAGE'
+  | 'TEXT_IMAGE'
+  | 'QUOTE'
+  | 'VIDEO'
+  | 'HERO';
 
 export interface SiteContentResponse {
   key: string;
   title?: string;
+  subtitle?: string;
   content?: string;
   type: SiteContentType;
   imageUrl?: string;
+  altText?: string;
+  buttonLabel?: string;
+  buttonUrl?: string;
   sortOrder: number;
+}
+
+export interface HeroSlide {
+  imageUrl: string;
+  altText: string;
 }
 
 export interface PageMetadata {
