@@ -1,11 +1,60 @@
 <main class="page">
 <section class="hero">
   <app-header />
-  <div class="hero-art hero-carousel" aria-label="Imágenes de exposiciones de Vicente Ruiz">
-    @for (slide of heroSlides; track slide.imageUrl; let i = $index) { <img class="hero-slide" [class.is-active]="i===currentHero" [src]="slide.imageUrl" [alt]="slide.altText" [attr.aria-hidden]="i===currentHero ? 'false' : 'true'"> }
+
+  <div
+    class="hero-art hero-carousel"
+    aria-label="Imágenes de exposiciones de Vicente Ruiz"
+  >
+    @for (slide of heroSlides; track slide.key; let i = $index) {
+      @if (slide.imageUrl) {
+        <img
+          class="hero-slide"
+          [class.is-active]="i === currentHero"
+          [src]="slide.imageUrl"
+          [alt]="slide.altText || slide.title || 'Obra de Vicente Ruiz'"
+          [attr.aria-hidden]="i === currentHero ? 'false' : 'true'"
+        >
+      }
+    }
   </div>
-  <div class="hero-copy"><div class="micro">{{ profile.subtitle }}</div><h1>Retrato<br>y paisaje<br>urbano</h1><p>Una pintura que alterna el retrato con escenarios urbanos, deteniéndose en esos rincones que suelen pasar desapercibidos.</p><a class="btn" routerLink="/obra">Ver obra &nbsp;→</a></div>
-  <div class="counter">{{ (currentHero+1).toString().padStart(2,'0') }} &nbsp;&nbsp;—&nbsp;&nbsp; {{ heroSlides.length.toString().padStart(2,'0') }}</div>
+
+  @if (currentHeroSlide; as slide) {
+    <div class="hero-copy">
+
+      @if (slide.subtitle) {
+        <div class="micro">
+          {{ slide.subtitle }}
+        </div>
+      }
+
+      @if (slide.title) {
+        <h1>{{ slide.title }}</h1>
+      }
+
+      @if (slide.content) {
+        <p>{{ slide.content }}</p>
+      }
+
+      @if (slide.buttonLabel && slide.buttonUrl) {
+        <a
+          class="btn"
+          [routerLink]="slide.buttonUrl"
+        >
+          {{ slide.buttonLabel }} &nbsp;→
+        </a>
+      }
+
+    </div>
+  }
+
+  @if (heroSlides.length) {
+    <div class="counter">
+      {{ (currentHero + 1).toString().padStart(2, '0') }}
+      &nbsp;&nbsp;—&nbsp;&nbsp;
+      {{ heroSlides.length.toString().padStart(2, '0') }}
+    </div>
+  }
 </section>
 
 <section class="collections">

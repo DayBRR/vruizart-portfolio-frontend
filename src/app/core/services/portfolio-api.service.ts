@@ -88,6 +88,12 @@ export class PortfolioApiService {
     return this.http.get<SiteContentResponse[]>(`${this.baseUrl}/content`);
   }
 
+  getHeroContent(): Observable<SiteContentResponse[]> {
+    return this.http.get<SiteContentResponse[]>(
+      `${this.baseUrl}/content/hero`
+    );
+  }
+
   getPublication(slug: string): Observable<PublicationResponse> {
     return this.http.get<PublicationResponse>(
       `${this.baseUrl}/publications/${encodeURIComponent(slug)}`
