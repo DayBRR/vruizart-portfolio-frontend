@@ -11,11 +11,12 @@ import {
 import { PortfolioApiService } from '../../core/services/portfolio-api.service';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { HeaderComponent } from '../../shared/header/header.component';
-
+import { PageLoaderComponent } from '../../shared/page-loader/page-loader.component';
 @Component({
   selector: 'app-artworks',
   standalone: true,
-  imports: [HeaderComponent, FooterComponent],
+  imports: [HeaderComponent, FooterComponent,
+  PageLoaderComponent],
   templateUrl: './artworks.component.html',
   styleUrl: './artworks.component.scss'
 })

@@ -11,14 +11,15 @@ import {
 } from '../../core/models/portfolio.models';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
-
+import { PageLoaderComponent } from '../../shared/page-loader/page-loader.component';
 @Component({
   selector: 'app-publications',
   standalone: true,
   imports: [
     CommonModule,
     HeaderComponent,
-    FooterComponent
+    FooterComponent,
+    PageLoaderComponent
   ],
   templateUrl: './publications.component.html',
   styleUrl: './publications.component.scss'

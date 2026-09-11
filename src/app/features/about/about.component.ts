@@ -12,11 +12,12 @@ import {
 import { PortfolioApiService } from '../../core/services/portfolio-api.service';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { HeaderComponent } from '../../shared/header/header.component';
-
+import { PageLoaderComponent } from '../../shared/page-loader/page-loader.component';
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [CommonModule, RouterLink, HeaderComponent, FooterComponent],
+  imports: [CommonModule, RouterLink, HeaderComponent, FooterComponent,
+  PageLoaderComponent],
   templateUrl: './about.component.html',
   styleUrl: './about.component.scss'
 })
