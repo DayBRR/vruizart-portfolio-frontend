@@ -11,7 +11,23 @@
 <section class="collections">
  <div class="section-head"><div class="heading"><h2>Colecciones</h2><span></span></div><a class="more" routerLink="/colecciones">Ver colecciones &nbsp;→</a></div>
  <div #collectionGrid class="collection-grid" (scroll)="update('collections')">
-  @for (collection of collections; track collection.slug) { <a class="collection" [routerLink]="['/colecciones',collection.slug]"><img [src]="collection.imageUrl" [alt]="collection.name"><div class="collection-copy"><h3>{{collection.name}}</h3><span>Explorar →</span></div></a> }
+ @for (collection of collections; track collection.slug) {
+    <a
+      class="collection"
+      [routerLink]="['/obra']"
+      [queryParams]="{ collection: collection.slug }"
+    >
+      <img
+        [src]="collection.imageUrl"
+        [alt]="collection.name"
+      >
+
+      <div class="collection-copy">
+        <h3>{{ collection.name }}</h3>
+        <span>Explorar →</span>
+      </div>
+    </a>
+  }
  </div>
  <button class="collection-scroll collection-prev" [class.is-visible]="collectionPrevVisible" type="button" (click)="move('collections',-1)" aria-label="Ver colecciones anteriores">←</button>
  <button class="collection-scroll collection-next" [class.is-hidden]="!collectionNextVisible" type="button" (click)="move('collections',1)" aria-label="Ver más colecciones">→</button>

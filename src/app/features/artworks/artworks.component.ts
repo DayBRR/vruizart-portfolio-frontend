@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import {
@@ -22,6 +22,7 @@ import { HeaderComponent } from '../../shared/header/header.component';
 export class ArtworksComponent implements OnInit {
   private readonly portfolioApi = inject(PortfolioApiService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   profile: ArtistProfile = {
     name: '',
@@ -54,6 +55,16 @@ export class ArtworksComponent implements OnInit {
   filterError = false;
 
   ngOnInit(): void {
+    const collectionFromQuery =
+      this.route.snapshot.queryParamMap.get('collection');
+
+    this.selectedCollection =
+      collectionFromQuery || 'all';
+
+    const collection =
+      this.selectedCollection === 'all'
+        ? undefined
+        : this.selectedCollection;
     forkJoin({
       profile: this.portfolioApi.getProfile(),
       collections: this.portfolioApi.getCollections(),
@@ -113,6 +124,17 @@ export class ArtworksComponent implements OnInit {
 
     this.selectedCollection = slug;
     this.currentPage = 0;
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        collection: slug === 'all'
+          ? null
+          : slug
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
 
     this.loadArtworksPage(0);
   }
