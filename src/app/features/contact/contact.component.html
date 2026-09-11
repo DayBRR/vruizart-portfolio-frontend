@@ -1,0 +1,160 @@
+<div class="contact-page">
+  <app-header />
+
+  <main>
+    <section class="hero" aria-labelledby="contact-title">
+      <div class="hero-copy">
+        <p class="micro">Vicente Ruiz · Zaragoza</p>
+        <h1 id="contact-title">Contacto</h1>
+        <p class="hero-description">
+          Para exposiciones, proyectos, colaboraciones, prensa o cualquier
+          consulta relacionada con mi obra.
+        </p>
+      </div>
+
+      <div class="hero-image" aria-hidden="true">
+        <img
+          src="assets/images/contact/contact-hero.jpg"
+          alt=""
+        />
+      </div>
+    </section>
+
+    <section class="intro" aria-labelledby="intro-title">
+      <h2 id="intro-title">Hablemos<br />de arte</h2>
+      <p>
+        Si quieres proponer una exposición, solicitar información sobre alguna
+        obra, plantear una colaboración o simplemente ponerte en contacto
+        conmigo, puedes hacerlo directamente a través de cualquiera de estos
+        canales.
+      </p>
+    </section>
+
+    <section class="contact-section" aria-labelledby="direct-contact-title">
+      <p id="direct-contact-title" class="eyebrow">Contacto directo</p>
+
+      <div class="contact-grid">
+        <div class="contact-main">
+          <div class="contact-row">
+            <div class="contact-label">Email</div>
+            <div class="contact-value">
+              <a [href]="'mailto:' + email">{{ email }}</a>
+              <span class="contact-sub">Canal preferente de contacto</span>
+            </div>
+          </div>
+
+          <div class="contact-row">
+            <div class="contact-label">Teléfono</div>
+            <div class="contact-value">
+              <a [href]="phoneHref">{{ phoneDisplay }}</a>
+              <span class="contact-sub">España</span>
+            </div>
+          </div>
+
+          <div class="contact-row">
+            <div class="contact-label">Instagram</div>
+            <div class="contact-value">
+              <a
+                [href]="instagramUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ instagramHandle }}
+              </a>
+              <span class="contact-sub">Obra, proceso y actualidad</span>
+            </div>
+          </div>
+
+          <div class="contact-row">
+            <div class="contact-label">Ubicación</div>
+            <div class="contact-value">
+              Zaragoza
+              <span class="contact-sub">Aragón · España</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="contact-side">
+          <div>
+            <p class="eyebrow">Motivos de contacto</p>
+            <h2>Proyectos y colaboraciones</h2>
+            <p class="contact-side-copy">
+              Estoy abierto a propuestas relacionadas con la exhibición de
+              obra, proyectos artísticos, colaboraciones y difusión.
+            </p>
+          </div>
+
+          <div class="interests" aria-label="Motivos de contacto habituales">
+            <span>Exposiciones</span>
+            <span>Obra</span>
+            <span>Colaboraciones</span>
+            <span>Prensa</span>
+            <span>Publicaciones</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="instagram" aria-labelledby="instagram-title">
+      <div class="instagram-copy">
+        <p class="eyebrow">Instagram</p>
+        <h2 id="instagram-title">Sigue mi trabajo</h2>
+        <p>
+          En Instagram comparto obras, detalles del proceso, exposiciones y
+          nuevos proyectos. Puedes acceder directamente escaneando el código QR
+          o desde el enlace inferior.
+        </p>
+
+        <a
+          class="insta-link"
+          [href]="instagramUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ instagramHandle }} →
+        </a>
+      </div>
+
+      <div class="qr-card">
+        <a
+          [href]="instagramUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Abrir Instagram de Vicente Ruiz"
+        >
+          <img
+            src="assets/images/contact/instagram-qr.png"
+            alt="Código QR del Instagram de Vicente Ruiz"
+          />
+        </a>
+        <span>Escanea para abrir Instagram</span>
+      </div>
+    </section>
+
+    <section class="visual-strip" aria-label="Selección de obra">
+      <figure>
+        <img
+          src="assets/images/contact/contact-work-01.jpg"
+          alt="Detalle de una obra de Vicente Ruiz"
+          loading="lazy"
+        />
+      </figure>
+      <figure>
+        <img
+          src="assets/images/contact/contact-work-02.jpg"
+          alt="Detalle de una obra de Vicente Ruiz"
+          loading="lazy"
+        />
+      </figure>
+      <figure>
+        <img
+          src="assets/images/contact/contact-work-03.jpg"
+          alt="Detalle de una obra de Vicente Ruiz"
+          loading="lazy"
+        />
+      </figure>
+    </section>
+  </main>
+
+  <app-footer [instagram]="instagramUrl" [email]="email" />
+</div>
