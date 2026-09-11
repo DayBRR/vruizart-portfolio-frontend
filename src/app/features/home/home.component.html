@@ -1,4 +1,26 @@
-<main class="page">
+@if (loading) {
+
+  <div class="page-loading">
+
+    <div class="page-loading-brand">
+      Vicente Ruiz
+    </div>
+
+    <div class="page-loading-line">
+      <div class="page-loading-line-progress"></div>
+    </div>
+
+    <div class="page-loading-text">
+      Cargando
+    </div>
+
+  </div>
+
+} @else {
+
+  <main class="page">
+
+
 <section class="hero">
   <app-header />
 
@@ -208,5 +230,8 @@
  <button class="exhibition-scroll exhibition-prev" [class.is-visible]="exhibitionPrevVisible" type="button" (click)="move('exhibitions',-1)" aria-label="Ver exposiciones anteriores">←</button><button class="exhibition-scroll exhibition-next" [class.is-hidden]="!exhibitionNextVisible" type="button" (click)="move('exhibitions',1)" aria-label="Ver exposiciones más antiguas">→</button>
 </section>
 <app-footer [instagram]="profile.instagram || ''" [email]="profile.email || ''" />
-</main>
+
+  </main>
+
+}
 @if(selectedPoster){<div class="poster-modal open" (click)="closePoster()"><button class="poster-close" type="button" aria-label="Cerrar" (click)="closePoster();$event.stopPropagation()">×</button><img [src]="selectedPoster" alt="Cartel de exposición" (click)="$event.stopPropagation()"></div>}

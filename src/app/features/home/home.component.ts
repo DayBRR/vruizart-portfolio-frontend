@@ -67,6 +67,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   featuredNextVisible = true;
   exhibitionPrevVisible = false;
   exhibitionNextVisible = true;
+  dataLoaded = false;
+  heroImageLoaded = false;
 
   selectedPoster?: 
   string;selectedArtwork?: ArtworkResponse;
@@ -93,7 +95,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.heroSlides = [...heroSlides].sort(
           (a, b) => a.sortOrder - b.sortOrder
         );
-
+        this.preloadHeroImage();
         this.currentHero = 0;
         this.startHeroCarousel();
 
@@ -113,7 +115,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           this.mapExhibition(exhibition)
         );
 
-        this.loading = false;
+        this.dataLoaded = true;
+        this.updateLoadingState();
 
         setTimeout(() => this.updateAll(), 0);
       },
@@ -123,6 +126,19 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.loadError = true;
       }
     });
+  }
+
+  onHeroImageLoad(index: number): void {
+    if (index !== 0) {
+      return;
+    }
+
+    this.heroImageLoaded = true;
+    this.updateLoadingState();
+  }
+
+  private updateLoadingState(): void {
+    this.loading = !(this.dataLoaded && this.heroImageLoaded);
   }
 
   private startHeroCarousel(): void {
@@ -142,6 +158,27 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.currentHero =
         (this.currentHero + 1) % this.heroSlides.length;
     }, 5000);
+  }
+  
+  private preloadHeroImage(): void {
+    const firstImageUrl = this.heroSlides[0]?.imageUrl;
+
+    if (!firstImageUrl) {
+      this.loading = false;
+      return;
+    }
+
+    const image = new Image();
+
+    image.onload = () => {
+      this.loading = false;
+    };
+
+    image.onerror = () => {
+      this.loading = false;
+    };
+
+    image.src = firstImageUrl;
   }
 
   get currentHeroSlide(): SiteContentResponse | undefined {
