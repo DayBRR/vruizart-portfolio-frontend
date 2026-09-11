@@ -1,3 +1,6 @@
+@if (loading) {
+  <app-page-loader />
+} @else {
 <main class="page">
   <section class="hero">
     <app-header />
@@ -221,7 +224,7 @@
     [email]="profile.email || ''"
   />
 </main>
-
+}
 @if (selectedArtwork) {
   <div
     class="lightbox open"

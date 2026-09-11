@@ -1,3 +1,6 @@
+@if (loading) {
+  <app-page-loader />
+} @else {
 <main class="page">
   <section class="hero-shell">
     <app-header />
@@ -165,3 +168,4 @@
     [email]="profile.email ?? ''"
   />
 </main>
+}

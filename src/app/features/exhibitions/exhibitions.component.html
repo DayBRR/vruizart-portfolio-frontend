@@ -1,4 +1,7 @@
-<main class="page">
+@if (loading) {
+  <app-page-loader />
+} @else {
+  <main class="page">
   <section class="hero">
     <app-header />
 
@@ -185,7 +188,7 @@
     [email]="profile.email || ''"
   />
 </main>
-
+}
 @if (selectedPoster) {
   <div class="poster-modal open" (click)="closePoster()">
     <button

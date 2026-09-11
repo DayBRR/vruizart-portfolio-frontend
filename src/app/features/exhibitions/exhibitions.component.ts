@@ -5,7 +5,7 @@ import { ArtistProfile, ExhibitionResponse } from '../../core/models/portfolio.m
 import { PortfolioApiService } from '../../core/services/portfolio-api.service';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { HeaderComponent } from '../../shared/header/header.component';
-
+import { PageLoaderComponent } from '../../shared/page-loader/page-loader.component';
 interface CollectiveExhibitionGroup {
   year: number;
   exhibitions: ExhibitionResponse[];
@@ -14,7 +14,8 @@ interface CollectiveExhibitionGroup {
 @Component({
   selector: 'app-exhibitions',
   standalone: true,
-  imports: [HeaderComponent, FooterComponent],
+  imports: [HeaderComponent, FooterComponent,
+  PageLoaderComponent],
   templateUrl: './exhibitions.component.html',
   styleUrl: './exhibitions.component.scss'
 })
