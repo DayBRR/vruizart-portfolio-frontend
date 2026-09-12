@@ -3,59 +3,41 @@
     Vicente Ruiz
   </div>
 
-  <nav class="nav">
-    <a
-      routerLink="/"
-      routerLinkActive="active"
-      [routerLinkActiveOptions]="{ exact: true }"
-    >
-      Inicio
-    </a>
-
-    <a
-      routerLink="/obra"
-      routerLinkActive="active"
-    >
-      Obra
-    </a>
-
-    <a
-      routerLink="/exposiciones"
-      routerLinkActive="active"
-    >
-      Exposiciones
-    </a>
-
-    <a
-      routerLink="/publicaciones"
-      routerLinkActive="active"
-    >
-      Publicaciones
-    </a>
-
-    <a
-      routerLink="/sobre-mi"
-      routerLinkActive="active"
-    >
-      Sobre mí
-    </a>
-
-    <a
-      routerLink="/contacto"
-      routerLinkActive="active"
-    >
-      Contacto
-    </a>
+  <nav class="nav" aria-label="Navegación principal">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+    <a routerLink="/obra" routerLinkActive="active">Obra</a>
+    <a routerLink="/exposiciones" routerLinkActive="active">Exposiciones</a>
+    <a routerLink="/publicaciones" routerLinkActive="active">Publicaciones</a>
+    <a routerLink="/sobre-mi" routerLinkActive="active">Sobre mí</a>
+    <a routerLink="/contacto" routerLinkActive="active">Contacto</a>
   </nav>
 
-  <a
-    routerLink="/"
-    class="header-logo"
-    aria-label="Vicente Ruiz - Inicio"
-  >
-    <img
-      src="assets/images/site/logo-vr.png"
-      alt="Logo Vicente Ruiz"
-    />
+  <a routerLink="/" class="header-logo" aria-label="Vicente Ruiz - Inicio" (click)="closeMenu()">
+    <img src="assets/images/site/logo-vr.png" alt="Logo Vicente Ruiz" />
   </a>
+
+  <button
+    class="menu-toggle"
+    type="button"
+    [class.open]="menuOpen"
+    [attr.aria-expanded]="menuOpen"
+    aria-controls="mobile-menu"
+    aria-label="Abrir o cerrar menú"
+    (click)="toggleMenu()"
+  >
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <div class="mobile-menu-backdrop" [class.open]="menuOpen" (click)="closeMenu()"></div>
+
+  <nav id="mobile-menu" class="mobile-menu" [class.open]="menuOpen" aria-label="Navegación móvil">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a>
+    <a routerLink="/obra" routerLinkActive="active" (click)="closeMenu()">Obra</a>
+    <a routerLink="/exposiciones" routerLinkActive="active" (click)="closeMenu()">Exposiciones</a>
+    <a routerLink="/publicaciones" routerLinkActive="active" (click)="closeMenu()">Publicaciones</a>
+    <a routerLink="/sobre-mi" routerLinkActive="active" (click)="closeMenu()">Sobre mí</a>
+    <a routerLink="/contacto" routerLinkActive="active" (click)="closeMenu()">Contacto</a>
+  </nav>
 </header>
