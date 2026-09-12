@@ -1,1 +1,14 @@
-<footer class="footer"><img class="footer-bg" src="assets/images/site/footer-bg.jpg" alt="Detalle de obra de Vicente Ruiz"><div class="footer-inner"><div class="footer-brand">Vicente Ruiz<span>Artista plástico</span></div><div class="footer-tag">Retrato · paisaje urbano<br>mirada social</div><div class="footer-right"><a class="btn" [href]="'mailto:' + email">Contacto →</a><div class="footer-links"><a [href]="instagram" target="_blank" rel="noopener">Instagram</a><a [href]="'mailto:' + email">Email</a><span>Aviso legal</span><span>Política de privacidad</span></div></div></div></footer>
+<footer class="footer">
+    <img class="footer-bg" src="assets/images/site/footer-bg.jpg" alt="Detalle de obra de Vicente Ruiz">
+    <div class="footer-inner"><div class="footer-brand">Vicente Ruiz<span>Artista plástico</span></div>
+        <div class="footer-tag">Retrato · paisaje urbano<br>mirada social</div>
+        <div class="footer-right">
+            <a class="btn" routerLink="/contacto">Contacto →</a>
+            <div class="footer-links">
+                <a [href]="instagram" target="_blank" rel="noopener">Instagram</a>
+                <a [href]="'mailto:' + email">Email</a>
+                <span>Aviso legal</span><span>Política de privacidad</span>
+            </div>
+        </div>
+    </div>
+</footer>
