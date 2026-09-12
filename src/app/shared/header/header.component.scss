@@ -6,12 +6,12 @@
   position: relative;
   z-index: 5;
 
-  height: 58px;
-  padding: 14px 60px 0;
+  height: 68px;
+  padding: 0 60px;
 
   display: grid;
-  grid-template-columns: 305px 1fr 100px;
-  align-items: start;
+  grid-template-columns: 283px minmax(0, 1fr) 64px;
+  align-items: center;
 
   background: linear-gradient(
     90deg,
@@ -21,40 +21,89 @@
 }
 
 .logo {
-  color: white;
-  font-family: Georgia, serif;
+  display: flex;
+  align-items: center;
+
+  height: 100%;
+
+  color: #fff;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 23px;
+  line-height: 1;
   letter-spacing: 0.20em;
   text-transform: uppercase;
-  line-height: 1;
+  white-space: nowrap;
 }
 
 .nav {
   display: flex;
+  align-items: center;
   justify-content: flex-start;
   gap: 24px;
-  padding-top: 8px;
-  font-family: Georgia, serif;
+
+  height: 100%;
+  min-width: 0;
+  padding-left: 28px;
+
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 12px;
   white-space: nowrap;
 }
 
 .nav a {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  height: 100%;
+  padding: 0;
+
   color: inherit;
   text-decoration: none;
-  padding-bottom: 5px;
-  border-bottom: 1px solid transparent;
 }
 
-.nav a.active {
-  border-bottom-color: currentColor;
+.nav a::after {
+  content: '';
+
+  position: absolute;
+  right: 0;
+  bottom: 15px;
+  left: 0;
+
+  height: 1px;
+
+  background: currentColor;
+  opacity: 0;
+
+  transition: opacity 0.2s ease;
 }
 
-.lang {
-  padding-top: 7px;
-  text-align: right;
-  font-size: 8px;
-  letter-spacing: 0.16em;
+.nav a:hover::after,
+.nav a.active::after {
+  opacity: 1;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 46px;
+  height: 46px;
+
+  justify-self: end;
+
+  text-decoration: none;
+}
+
+.header-logo img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
 }
 
 @media (max-width: 900px) {
@@ -66,43 +115,43 @@
     height: 72px;
     padding: 0 28px;
 
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
+    grid-template-columns: 1fr 48px;
 
     background: rgba(91, 87, 81, 0.96);
   }
 
   .logo {
     font-size: 21px;
-    white-space: nowrap;
   }
 
   .nav {
     display: none;
   }
 
-  .lang {
-    padding: 0;
-    font-size: 8px;
-    color: #fff;
+  .header-logo {
+    width: 44px;
+    height: 44px;
   }
 }
 
 @media (max-width: 600px) {
   .topbar {
-    height: 72px;
+    height: 68px;
     padding: 0 20px;
-    background: rgba(91, 87, 81, 0.96);
+
+    grid-template-columns: minmax(0, 1fr) 44px;
   }
 
   .logo {
-    font-size: 20px;
-    letter-spacing: 0.16em;
+    overflow: hidden;
+
+    font-size: 19px;
+    letter-spacing: 0.15em;
+    text-overflow: ellipsis;
   }
 
-  .lang {
-    font-size: 7px;
-    letter-spacing: 0.12em;
+  .header-logo {
+    width: 40px;
+    height: 40px;
   }
 }
