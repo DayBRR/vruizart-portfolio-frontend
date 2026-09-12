@@ -67,7 +67,6 @@ export class ArtworksComponent implements OnInit {
   ngOnInit(): void {
     const collectionFromQuery =
       this.route.snapshot.queryParamMap.get('collection');
-
     this.selectedCollection =
       collectionFromQuery || 'all';
 
@@ -79,7 +78,7 @@ export class ArtworksComponent implements OnInit {
       profile: this.portfolioApi.getProfile(),
       collections: this.portfolioApi.getCollections(),
       artworksPage: this.portfolioApi.getArtworks(
-        undefined,
+        collection,
         0,
         this.pageSize
       ),

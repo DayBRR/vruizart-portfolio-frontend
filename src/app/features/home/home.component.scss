@@ -33,7 +33,7 @@ img{display:block;width:100%;height:100%;object-fit:cover}
   white-space:nowrap;
 }
 .hero-art{position:absolute;z-index:1;left:343px;top:58px;width:681px;height:395px}
-.counter{position:absolute;z-index:4;left:65px;bottom:17px;color:white;font-size:8px;letter-spacing:.13em}
+.counter{position:absolute;z-index:4;left:48px;bottom:17px;color:white;font-size:8px;letter-spacing:.13em}
 
 /* headings */
 .section-head{display:flex;justify-content:space-between;align-items:center}
@@ -308,26 +308,26 @@ img{display:block;width:100%;height:100%;object-fit:cover}
   .more{font-size:7px;letter-spacing:.12em}
 
   .hero{height:520px;background:#3d3a35}
-  .hero-art{top:72px;height:448px}
+  .hero-art{left:0;top:68px;width:100%;height:452px}
   .hero-carousel .hero-slide{object-position:center center}
   .hero:after{z-index:2;background:
     linear-gradient(90deg,rgba(8,7,6,.78) 0%,rgba(8,7,6,.60) 48%,rgba(8,7,6,.24) 74%,rgba(8,7,6,.06) 100%),
-    linear-gradient(180deg,rgba(8,7,6,.14) 0%,transparent 56%,rgba(8,7,6,.48) 100%)}
-  .hero-copy{left:22px;right:22px;top:104px;bottom:auto;width:auto}
+    linear-gradient(180deg,rgba(8,7,6,.14) 0%,transparent 56%,rgba(8,7,6,.56) 100%)}
+  .hero-copy{left:18px;right:18px;top:104px;bottom:15px;width:auto}
   .hero-copy .micro{font-size:8px;letter-spacing:.22em}
-  .hero-copy h1{font-size:42px;line-height:.9;margin:10px 0 14px;max-width:300px}
-  .hero-copy p{font-size:13px;line-height:1.42;max-width:325px;margin-bottom:17px}
+  .hero-copy h1{font-size:42px;line-height:.9;margin:10px 0 12px;max-width:300px}
+  .hero-copy p{width:auto;max-width:325px;font-size:13px;line-height:1.42;margin:0}
   .hero-copy .btn{
-  position:absolute;
-  right:0;
-  bottom:0;
-  z-index:5;
-  height:35px;
-  padding:0 20px;
-  background:rgba(20,18,15,.12);
-  white-space:nowrap;
-}
-  .counter{left:22px;bottom:15px}
+    position:absolute;
+    right:0;
+    bottom:0;
+    z-index:5;
+    height:35px;
+    padding:0 20px;
+    background:rgba(20,18,15,.18);
+    white-space:nowrap;
+  }
+  .counter{left:18px;bottom:15px}
 
   .collections{padding:24px 20px 26px}
   .collections .section-head{margin-bottom:14px}
@@ -370,8 +370,11 @@ img{display:block;width:100%;height:100%;object-fit:cover}
 }
 
 @media (max-width: 390px){
+  .hero-copy{left:16px;right:16px}
   .hero-copy h1{font-size:38px}
-  .hero-copy p{font-size:12px;max-width:300px}
+  .hero-copy p{font-size:12px;line-height:1.38;max-width:300px}
+  .hero-copy .btn{height:34px;padding:0 16px}
+  .counter{left:16px}
   .collection-grid .collection,.feature-strip .featured-work,.exhibition{flex-basis:92%}
 }
 
