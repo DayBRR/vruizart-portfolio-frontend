@@ -324,21 +324,16 @@
             <dd>{{ getStatusLabel(selectedArtwork.status) }}</dd>
           </div>
 
-            <div>
-              <dt>Precio</dt>
-              <dd> - Consultar -</dd>
-            </div>
-          <!--
           @if (
+            selectedArtwork.status === 'AVAILABLE' &&
             selectedArtwork.price !== undefined &&
             selectedArtwork.price !== null
           ) {
             <div>
               <dt>Precio</dt>
-              <dd>{{ formatPrice(selectedArtwork.price) }}</dd>
+              <dd>Consultar</dd>
             </div>
           }
-            -->
         </dl>
 
         @if (selectedArtworkImages.length > 1) {
