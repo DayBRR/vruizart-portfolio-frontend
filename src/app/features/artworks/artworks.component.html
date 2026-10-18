@@ -9,7 +9,7 @@
       <div class="hero-copy">
         <div class="micro">Galería · selección y colecciones</div>
 
-        <h1>Obra</h1>
+        <h1>Galería</h1>
 
         <p>
           Una mirada transversal a mi trabajo: retrato, paisaje urbano, música
@@ -44,13 +44,31 @@
       <p>Inténtalo de nuevo dentro de unos momentos.</p>
     </section>
   } @else {
-    <section class="gallery-intro">
-      <p>
-        Esta galería reúne una selección de obras organizadas por colecciones.
-        Puedes recorrer todo el archivo o centrarte en una serie concreta.
-      </p>
-    </section>
+    @if (isCollectionCover) {
+      <div class="collection-cover">
+        @for (preview of collectionPreviews; track preview.collection.slug) {
+          <section class="collection-preview" [attr.aria-labelledby]="'collection-' + preview.collection.slug">
+            <h2 [id]="'collection-' + preview.collection.slug">{{ preview.collection.name }}</h2>
+            <ng-container [ngTemplateOutlet]="artworkGrid" [ngTemplateOutletContext]="{ $implicit: preview.artworks }" />
+            @if (!preview.artworks.length) {
+              <p class="empty">No hay obras disponibles en esta colección.</p>
+            }
+            <div class="collection-action">
+              <a class="btn" [routerLink]="['/obra/coleccion', preview.collection.slug]">VER COLECCIÓN →</a>
+            </div>
+          </section>
+        } @empty {
+          <p class="empty">No hay colecciones disponibles.</p>
+        }
+        <div class="catalog-action"><a class="more" routerLink="/obra/catalogo">VER TODAS LAS OBRAS →</a></div>
+      </div>
+    } @else {
+      <nav class="back-navigation"><a class="more" routerLink="/obra">← Volver a colecciones</a></nav>
+      @if (collectionNotFound) {
+        <section class="status-panel"><h2>Colección no encontrada</h2><p>Puedes explorar las colecciones disponibles desde Obra.</p></section>
+      } @else {
 
+    @if (!isCollectionGallery) {
     <section
       class="filters"
       aria-label="Filtros de la galería"
@@ -87,6 +105,7 @@
       </div>
     </section>
 
+    }
     <section class="gallery-section">
       <div class="gallery-head">
         <div class="gallery-title">
@@ -110,63 +129,39 @@
         </span>
       </div>
 
+      <div class="technique-filter">
+        <label for="artwork-technique">Técnica</label>
+        <select #techniqueSelect id="artwork-technique"
+          [value]="selectedTechnique" [disabled]="techniquesLoading"
+          [attr.aria-describedby]="techniquesLoading || techniquesError ? 'technique-status' : null"
+          (change)="filterByTechnique(techniqueSelect.value)">
+          <option value="">Todas las técnicas</option>
+          @if (selectedTechnique && !techniques.includes(selectedTechnique)) {
+            <option [value]="selectedTechnique">{{ selectedTechnique }}</option>
+          }
+          @for (technique of techniques; track technique) {
+            <option [value]="technique">{{ technique }}</option>
+          }
+        </select>
+        @if (techniquesLoading) {
+          <span id="technique-status" role="status">Cargando técnicas…</span>
+        } @else if (techniquesError) {
+          <span id="technique-status" role="status">No se han podido cargar las técnicas.</span>
+          <button type="button" class="pagination-btn" (click)="retryTechniques()">Reintentar</button>
+        }
+      </div>
+
       @if (filtering) {
         <div class="gallery-loading">
           Cargando obras…
         </div>
       } @else if (filterError) {
         <div class="empty show">
-          No se ha podido cargar esta colección.
+          No se han podido cargar las obras. Inténtalo de nuevo.
+          <button type="button" class="pagination-btn" (click)="loadArtworksPage(currentPage)">Reintentar</button>
         </div>
       } @else if (filteredArtworks.length) {
-        <div class="art-grid">
-          @for (artwork of filteredArtworks; track artwork.slug) {
-            <article
-              class="art-card"
-              tabindex="0"
-              role="button"
-              (click)="openArtwork(artwork)"
-              (keydown.enter)="openArtwork(artwork)"
-              (keydown.space)="$event.preventDefault(); openArtwork(artwork)"
-              [attr.aria-label]="'Ver detalle de ' + artwork.title"
-            >
-              <div class="art-image-wrap">
-                @if (getArtworkImage(artwork)) {
-                  <img
-                    [src]="getArtworkImage(artwork)"
-                    [alt]="artwork.title"
-                    loading="lazy"
-                  />
-                }
-
-                <div
-                  class="art-hover"
-                  aria-hidden="true"
-                >
-                  <span>Ver obra</span>
-                </div>
-              </div>
-
-              <div class="art-caption">
-                <h3>{{ artwork.title }}</h3>
-
-                <p>
-                  @if (artwork.year) {
-                    {{ artwork.year }}
-                  }
-
-                  @if (artwork.year && artwork.technique) {
-                    ·
-                  }
-
-                  @if (artwork.technique) {
-                    {{ artwork.technique }}
-                  }
-                </p>
-              </div>
-            </article>
-          }
-        </div>
+        <ng-container [ngTemplateOutlet]="artworkGrid" [ngTemplateOutletContext]="{ $implicit: filteredArtworks }" />
 
         @if (totalPages > 1) {
           <nav
@@ -184,20 +179,19 @@
 
             <div class="pagination-pages">
               @for (
-                _ of [].constructor(totalPages);
-                track i;
-                let i = $index
+                page of visiblePages;
+                track page
               ) {
                 <button
                   type="button"
                   class="pagination-page"
-                  [class.active]="i === currentPage"
+                  [class.active]="page === currentPage"
                   [disabled]="filtering"
-                  (click)="goToPage(i)"
-                  [attr.aria-label]="'Ir a la página ' + (i + 1)"
-                  [attr.aria-current]="i === currentPage ? 'page' : null"
+                  (click)="goToPage(page)"
+                  [attr.aria-label]="'Ir a la página ' + (page + 1)"
+                  [attr.aria-current]="page === currentPage ? 'page' : null"
                 >
-                  {{ i + 1 }}
+                  {{ page + 1 }}
                 </button>
               }
             </div>
@@ -221,10 +215,15 @@
         }
       } @else {
         <div class="empty show">
-          No hay obras disponibles en esta colección.
+          <p>No se han encontrado obras con los filtros seleccionados.</p>
+          @if (selectedTechnique) {
+            <button type="button" class="pagination-btn" (click)="filterByTechnique('')">Todas las técnicas</button>
+          }
         </div>
       }
     </section>
+      }
+    }
   }
 
   <app-footer
@@ -319,21 +318,6 @@
             <dd>{{ selectedArtwork.collectionName || '—' }}</dd>
           </div>
 
-          <div>
-            <dt>Estado</dt>
-            <dd>{{ getStatusLabel(selectedArtwork.status) }}</dd>
-          </div>
-
-          @if (
-            selectedArtwork.status === 'AVAILABLE' &&
-            selectedArtwork.price !== undefined &&
-            selectedArtwork.price !== null
-          ) {
-            <div>
-              <dt>Precio</dt>
-              <dd>Consultar</dd>
-            </div>
-          }
         </dl>
 
         @if (selectedArtworkImages.length > 1) {
@@ -367,3 +351,54 @@
     </div>
   </div>
 }
+<ng-template #artworkGrid let-items>
+        <div class="art-grid">
+          @for (artwork of items; track artwork.slug) {
+            <article
+              class="art-card"
+              tabindex="0"
+              role="button"
+              (click)="openArtwork(artwork)"
+              (keydown.enter)="openArtwork(artwork)"
+              (keydown.space)="$event.preventDefault(); openArtwork(artwork)"
+              [attr.aria-label]="'Ver detalle de ' + artwork.title"
+            >
+              <div class="art-image-wrap">
+                @if (getArtworkImage(artwork)) {
+                  <img
+                    [src]="getArtworkImage(artwork)"
+                    [alt]="artwork.title"
+                    loading="lazy"
+                  />
+                }
+
+                <div
+                  class="art-hover"
+                  aria-hidden="true"
+                >
+                  <span>Ver obra</span>
+                </div>
+              </div>
+
+              <div class="art-caption">
+                <h3>{{ artwork.title }}</h3>
+
+                <p>
+                  @if (artwork.year) {
+                    {{ artwork.year }}
+                  }
+
+                  @if (artwork.year && artwork.technique) {
+                    ·
+                  }
+
+                  @if (artwork.technique) {
+                    {{ artwork.technique }}
+                  }
+                </p>
+              </div>
+            </article>
+          }
+        </div>
+
+</ng-template>

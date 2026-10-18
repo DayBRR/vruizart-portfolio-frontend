@@ -1,12 +1,15 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { EMPTY, catchError, combineLatest, forkJoin, map, of, Subscription, switchMap } from 'rxjs';
 
 import {
   ArtistProfile,
   ArtworkImageResponse,
   ArtworkResponse,
-  CollectionResponse
+  CollectionResponse,
+  PageResponse
 } from '../../core/models/portfolio.models';
 import { PortfolioApiService } from '../../core/services/portfolio-api.service';
 import { FooterComponent } from '../../shared/footer/footer.component';
@@ -15,7 +18,7 @@ import { PageLoaderComponent } from '../../shared/page-loader/page-loader.compon
 @Component({
   selector: 'app-artworks',
   standalone: true,
-  imports: [HeaderComponent, FooterComponent,
+  imports: [NgTemplateOutlet, RouterLink, HeaderComponent, FooterComponent,
   PageLoaderComponent],
   templateUrl: './artworks.component.html',
   styleUrl: './artworks.component.scss'
@@ -24,6 +27,18 @@ export class ArtworksComponent implements OnInit {
   private readonly portfolioApi = inject(PortfolioApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+
+  private readonly destroyRef = inject(DestroyRef);
+  private pageRequest?: Subscription;
+  private techniqueRequest?: Subscription;
+  techniques: string[] = [];
+  selectedTechnique = '';
+  techniquesLoading = false;
+  techniquesError = false;
+  isCollectionCover = true;
+  isCollectionGallery = false;
+  collectionNotFound = false;
+  collectionPreviews: { collection: CollectionResponse; artworks: ArtworkResponse[] }[] = [];
 
   profile: ArtistProfile = {
     name: '',
@@ -59,68 +74,92 @@ export class ArtworksComponent implements OnInit {
   totalPages = 0;
   totalElements = 0;
 
+  get visiblePages(): number[] {
+    const count = Math.min(5, this.totalPages);
+    const start = Math.max(0, Math.min(this.currentPage - 2, this.totalPages - count));
+    return Array.from({ length: count }, (_, index) => start + index);
+  }
+
   loading = true;
   loadError = false;
   filtering = false;
   filterError = false;
 
   ngOnInit(): void {
-    const collectionFromQuery =
-      this.route.snapshot.queryParamMap.get('collection');
-    this.selectedCollection =
-      collectionFromQuery || 'all';
-
-    const collection =
-      this.selectedCollection === 'all'
-        ? undefined
-        : this.selectedCollection;
     forkJoin({
       profile: this.portfolioApi.getProfile(),
       collections: this.portfolioApi.getCollections(),
-      artworksPage: this.portfolioApi.getArtworks(
-        collection,
-        0,
-        this.pageSize
-      ),
       heroArtworks: this.portfolioApi.getHeroArtworks()
-    }).subscribe({
-      next: ({
-        profile,
-        collections,
-        artworksPage,
-        heroArtworks
-      }) => {
+    }).pipe(
+      switchMap(({ profile, collections, heroArtworks }) => {
         this.profile = profile;
-
-        this.collections = [...collections].sort(
-          (a, b) => a.sortOrder - b.sortOrder
+        this.collections = [...collections].sort((a, b) =>
+          a.sortOrder - b.sortOrder || a.slug.localeCompare(b.slug));
+        this.heroArtworks = heroArtworks.filter(artwork => !!this.getArtworkImage(artwork));
+        return combineLatest([this.route.paramMap, this.route.queryParamMap]);
+      }),
+      switchMap(([params, query]) => {
+        this.pageRequest?.unsubscribe();
+        this.techniqueRequest?.unsubscribe();
+        this.filtering = false;
+        this.filterError = false;
+        this.loading = true;
+        this.loadError = false;
+        this.selectedArtwork = undefined;
+        this.isCollectionGallery = !!params.get('collectionSlug');
+        this.selectedCollection = params.get('collectionSlug') || query.get('collection') || 'all';
+        this.selectedTechnique = query.get('technique') || '';
+        this.isCollectionCover = !this.isCollectionGallery &&
+          !this.route.snapshot.data['catalog'] && !query.has('collection');
+        this.collectionNotFound = this.selectedCollection !== 'all' && !this.selectedCollectionData;
+        if (this.collectionNotFound) {
+          this.loading = false;
+          return EMPTY;
+        }
+        if (!this.isCollectionCover) {
+          this.loading = false;
+          this.filtering = true;
+        }
+        const data = this.isCollectionCover
+          ? this.portfolioApi.getAllArtworks().pipe(map(artworks => {
+              this.collectionPreviews = this.collections.map(collection => ({
+                collection,
+                artworks: this.selectCollectionPreview(artworks, collection.slug)
+              }));
+            }))
+          : this.loadTechniqueOptions().pipe(map(() => this.loadArtworksPage(0)));
+        return data.pipe(
+          switchMap(() => params.get('slug')
+            ? this.portfolioApi.getArtwork(params.get('slug')!) : of(undefined)),
+          map(artwork => {
+            this.loading = false;
+            if (this.isCollectionCover) this.filtering = false;
+            if (artwork) this.openArtwork(artwork);
+          }),
+          catchError(error => {
+            console.error('Error loading artworks', error);
+            this.loading = false;
+            this.filtering = false;
+            this.loadError = this.isCollectionCover;
+            this.filterError = !this.isCollectionCover;
+            return EMPTY;
+          })
         );
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({ error: error => {
+      console.error('Error loading artworks page data', error);
+      this.loading = false;
+      this.loadError = true;
+    }});
+  }
 
-        this.artworks = artworksPage.content;
-        this.filteredArtworks = artworksPage.content;
-
-        this.currentPage = artworksPage.page.number;
-        this.totalPages = artworksPage.page.totalPages;
-        this.totalElements = artworksPage.page.totalElements;
-
-        this.heroArtworks = heroArtworks.filter(
-          (artwork) => !!this.getArtworkImage(artwork)
-        );
-
-        this.loading = false;
-
-        this.openArtworkFromRoute();
-      },
-      error: (error) => {
-        console.error(
-          'Error loading artworks page data',
-          error
-        );
-
-        this.loading = false;
-        this.loadError = true;
-      }
-    });
+  // Replace this policy when collection-specific editorial selection is available.
+  // ArtworkResponse has no sortOrder; slug is stable across API pages and reloads.
+  private selectCollectionPreview(artworks: ArtworkResponse[], slug: string): ArtworkResponse[] {
+    return artworks.filter(artwork => artwork.collectionSlug === slug)
+      .sort((a, b) => a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0)
+      .slice(0, 4);
   }
 
   filterByCollection(slug: string): void {
@@ -131,20 +170,50 @@ export class ArtworksComponent implements OnInit {
       return;
     }
 
-    this.selectedCollection = slug;
-    this.currentPage = 0;
-
-    void this.router.navigate([], {
-      relativeTo: this.route,
+    void this.router.navigate(['/obra/catalogo'], {
       queryParams: {
-        collection: slug === 'all'
-          ? null
-          : slug
-      },
-      queryParamsHandling: 'merge',
-      replaceUrl: true
+        collection: slug === 'all' ? null : slug,
+        ...(this.selectedTechnique ? { technique: this.selectedTechnique } : {})
+      }
     });
+  }
 
+  private loadTechniqueOptions() {
+    this.techniquesLoading = true;
+    this.techniquesError = false;
+    this.techniques = [];
+    return this.portfolioApi.getArtworkTechniques(
+      this.selectedCollection === 'all' ? undefined : this.selectedCollection
+    ).pipe(
+      map(techniques => {
+        this.techniques = techniques;
+        if (this.selectedTechnique && !techniques.includes(this.selectedTechnique)) {
+          this.selectedTechnique = '';
+        }
+        this.techniquesLoading = false;
+      }),
+      catchError(() => {
+        this.techniquesLoading = false;
+        this.techniquesError = true;
+        return of(undefined);
+      })
+    );
+  }
+
+  retryTechniques(): void {
+    if (this.techniquesLoading) return;
+    const previous = this.selectedTechnique;
+    this.techniqueRequest = this.loadTechniqueOptions()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (previous !== this.selectedTechnique) this.loadArtworksPage(0);
+      });
+  }
+
+  filterByTechnique(technique: string): void {
+    if (technique === this.selectedTechnique) return;
+    this.selectedTechnique = technique;
+    this.currentPage = 0;
     this.loadArtworksPage(0);
   }
 
@@ -157,20 +226,18 @@ export class ArtworksComponent implements OnInit {
         ? undefined
         : this.selectedCollection;
 
-    this.portfolioApi
+    this.pageRequest?.unsubscribe();
+    this.pageRequest = this.portfolioApi
       .getArtworks(
         collection,
         page,
-        this.pageSize
+        this.pageSize,
+        this.selectedTechnique || undefined
       )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          this.artworks = response.content;
-          this.filteredArtworks = response.content;
-
-          this.currentPage = response.page.number;
-          this.totalPages = response.page.totalPages;
-          this.totalElements = response.page.totalElements;
+          this.applyArtworkPage(response);
 
           this.filtering = false;
         },
@@ -184,6 +251,13 @@ export class ArtworksComponent implements OnInit {
           this.filterError = true;
         }
       });
+  }
+
+  private applyArtworkPage(response: PageResponse<ArtworkResponse>): void {
+    this.artworks = this.filteredArtworks = response.content;
+    this.currentPage = response.page.number;
+    this.totalPages = response.page.totalPages;
+    this.totalElements = response.page.totalElements;
   }
 
   previousPage(): void {
@@ -227,7 +301,7 @@ export class ArtworksComponent implements OnInit {
 
   openArtwork(artwork: ArtworkResponse): void {
     this.selectedArtwork = artwork;
-    this.selectedImageIndex = this.getInitialImageIndex(artwork);
+    this.selectedImageIndex = Math.max(0, this.selectedArtworkImages.findIndex(image => image.main));
   }
 
   closeArtwork(): void {
@@ -363,101 +437,6 @@ export class ArtworksComponent implements OnInit {
     }
 
     return '—';
-  }
-
-  getStatusLabel(
-    status: string
-  ): string {
-    switch (status) {
-      case 'AVAILABLE':
-        return 'Disponible';
-
-      case 'SOLD':
-        return 'Vendida';
-
-      case 'PRIVATE_COLLECTION':
-        return 'Colección privada';
-
-      case 'NOT_FOR_SALE':
-        return 'No disponible';
-
-      default:
-        return status
-          .toLowerCase()
-          .replaceAll('_', ' ')
-          .replace(
-            /^./,
-            (value) =>
-              value.toUpperCase()
-          );
-    }
-  }
-
-  formatPrice(
-    price?: number
-  ): string {
-    if (
-      price === undefined ||
-      price === null
-    ) {
-      return '—';
-    }
-
-    return new Intl.NumberFormat(
-      'es-ES',
-      {
-        style: 'currency',
-        currency: 'EUR',
-        maximumFractionDigits: 0
-      }
-    ).format(price);
-  }
-
-  private openArtworkFromRoute(): void {
-    const slug =
-      this.route.snapshot.paramMap.get(
-        'slug'
-      );
-
-    if (!slug) {
-      return;
-    }
-
-    this.portfolioApi
-      .getArtwork(slug)
-      .subscribe({
-        next: (artwork) => {
-          this.openArtwork(
-            artwork
-          );
-        },
-        error: (error) => {
-          console.error(
-            'Error loading artwork from route',
-            error
-          );
-        }
-      });
-  }
-
-  private getInitialImageIndex(
-    artwork: ArtworkResponse
-  ): number {
-    const sortedImages = [
-      ...(artwork.images ?? [])
-    ].sort(
-      (a, b) =>
-        a.sortOrder - b.sortOrder
-    );
-
-    const mainIndex =
-      sortedImages.findIndex(
-        (image) => image.main
-      );
-
-    return mainIndex >= 0
-      ? mainIndex
-      : 0;
   }
 
   private formatNumber(

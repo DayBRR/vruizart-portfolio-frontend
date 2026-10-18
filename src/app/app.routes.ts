@@ -7,7 +7,9 @@ import { AboutComponent } from './features/about/about.component';
 import { ContactComponent } from './features/contact/contact.component';
 export const routes: Routes = [
  {path:'',component:HomeComponent}, 
- {path:'obra',component:ArtworksComponent}, {path:'obra/:slug',component:ArtworksComponent},
+ {path:'obra',component:ArtworksComponent},
+ {path:'obra/catalogo',component:ArtworksComponent,data:{catalog:true}},
+ {path:'obra/coleccion/:collectionSlug',component:ArtworksComponent}, {path:'obra/:slug',component:ArtworksComponent},
  {path:'exposiciones',component:ExhibitionsComponent}, {path:'exposiciones/:slug',component:ExhibitionsComponent},
  {path:'publicaciones',component:PublicationsComponent}, {path:'publicaciones/:slug',component:PublicationsComponent},
  {path:'sobre-mi',component:AboutComponent}, {path:'contacto',component:ContactComponent}, {path:'**',redirectTo:''}

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { EMPTY, Observable, expand, reduce } from 'rxjs';
 
 import {
   ArtistProfile,
@@ -30,20 +30,34 @@ export class PortfolioApiService {
   getArtworks(
     collection?: string,
     page = 0,
-    size = 12
+    size = 12,
+    technique?: string
   ): Observable<PageResponse<ArtworkResponse>> {
-    const params: { [param: string]: string } = {
-      page: String(page),
-      size: String(size)
-    };
+    let params = new HttpParams().set('page', page).set('size', size);
 
     if (collection) {
-      params['collection'] = collection;
+      params = params.set('collection', collection);
     }
+    if (technique) params = params.set('technique', technique);
 
     return this.http.get<PageResponse<ArtworkResponse>>(
       `${this.baseUrl}/artworks`,
       { params }
+    );
+  }
+
+  getArtworkTechniques(collection?: string): Observable<string[]> {
+    let params = new HttpParams();
+    if (collection) params = params.set('collection', collection);
+    return this.http.get<string[]>(`${this.baseUrl}/artworks/techniques`, { params });
+  }
+
+  // Follow server pagination, including servers that cap the requested page size.
+  getAllArtworks(): Observable<ArtworkResponse[]> {
+    return this.getArtworks(undefined, 0, 100).pipe(
+      expand(page => page.page.number + 1 < page.page.totalPages
+        ? this.getArtworks(undefined, page.page.number + 1, 100) : EMPTY),
+      reduce((artworks, page) => artworks.concat(page.content), [] as ArtworkResponse[])
     );
   }
 
