@@ -1,0 +1,23 @@
+// Desktop frames exclude the shared header; stacked layouts grow with their text.
+@mixin frame($height, $stack-at) {
+  height: $height;
+
+  > * {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  @media (max-width: $stack-at) {
+    height: auto;
+  }
+}
+
+@mixin copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  h1 {
+    font-size: var(--text-hero-compact);
+  }
+}

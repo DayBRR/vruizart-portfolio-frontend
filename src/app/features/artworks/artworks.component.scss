@@ -1,3 +1,5 @@
+@use '../../../styles/hero';
+
 :host {
   display: block;
   background: #d6d2cc;
@@ -5,7 +7,7 @@
 }
 
 .page {
-  width: min(1024px, 100%);
+  width: min(var(--page-max-width), 100%);
   margin: 0 auto;
   overflow: hidden;
   background: #fbfaf7;
@@ -15,12 +17,12 @@
 h1,
 h2,
 h3 {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-heading);
   font-weight: 400;
 }
 
 .micro {
-  font-size: 9px;
+  font-size:var(--text-label);
   letter-spacing: 0.22em;
   text-transform: uppercase;
 }
@@ -34,10 +36,11 @@ h3 {
 .hero-layout {
   display: grid;
   grid-template-columns: 343px 1fr;
-  height: 300px;
+  @include hero.frame(var(--hero-gallery-height), 900px);
 }
 
 .hero-copy {
+  @include hero.copy;
   padding: 56px 50px 35px 63px;
   background: #615d57;
   color: white;
@@ -49,17 +52,16 @@ h3 {
 
 .hero-copy h1 {
   margin: 14px 0 16px;
-  font-size: 52px;
-  line-height: 0.94;
+  line-height:var(--leading-heading);
 }
 
 .hero-copy p {
   max-width: 245px;
   margin: 0;
   color: #f1ede7;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 13px;
-  line-height: 1.55;
+  font-family:var(--font-body);
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
 }
 
 .hero-grid {
@@ -77,6 +79,8 @@ h3 {
 }
 
 .hero-grid img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -116,13 +120,13 @@ h3 {
 
 .status-panel h2 {
   margin: 0 0 12px;
-  font-size: 30px;
+  font-size:var(--text-section);
 }
 
 .status-panel p {
   margin: 0;
   color: #625c55;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-body);
 }
 
 .status-panel.error {
@@ -141,9 +145,9 @@ h3 {
   max-width: 720px;
   margin: 0;
   color: #5f5952;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 14px;
-  line-height: 1.62;
+  font-family:var(--font-body);
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
 }
 
 /* FILTER BAR */
@@ -166,7 +170,7 @@ h3 {
 
 .result-count {
   color: #777066;
-  font-size: 8px;
+  font-size:var(--text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
@@ -193,9 +197,9 @@ h3 {
 
   cursor: pointer;
 
-  font-size: 8.5px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+
+
+
   line-height: 1.25;
   text-align: center;
   text-transform: uppercase;
@@ -203,7 +207,7 @@ h3 {
   white-space: normal;
 }
 
-.chip:hover,
+.chip:hover:not(:disabled),
 .chip.active {
   border-color: #5f5b55;
   background: #5f5b55;
@@ -231,12 +235,12 @@ h3 {
 
 .gallery-head h2 {
   margin: 0;
-  font-size: 28px;
+  font-size:var(--text-section);
 }
 
 .gallery-head .hint {
   color: #756e66;
-  font-size: 8px;
+  font-size:var(--text-label);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -288,7 +292,7 @@ h3 {
   padding: 10px 13px;
   border: 1px solid rgba(255, 255, 255, 0.78);
   color: white;
-  font-size: 7px;
+  font-size:var(--text-label);
   letter-spacing: 0.18em;
   opacity: 0;
   text-transform: uppercase;
@@ -306,14 +310,14 @@ h3 {
 
 .art-caption h3 {
   margin: 0;
-  font-size: 16px;
-  line-height: 1.08;
+  font-size:var(--text-card);
+  line-height:var(--leading-heading);
 }
 
 .art-caption p {
   margin: 4px 0 0;
   color: #837c73;
-  font-size: 8px;
+  font-size:var(--text-body);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -369,14 +373,11 @@ h3 {
   background: transparent;
   color: #4e4943;
   cursor: pointer;
-  font-size: 8px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+
+
+
   text-transform: uppercase;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
+
 }
 
 .pagination-btn {
@@ -409,7 +410,7 @@ h3 {
 .pagination-info {
   margin-top: 14px;
   color: #827a71;
-  font-size: 8px;
+  font-size:var(--text-button);
   letter-spacing: 0.12em;
   text-align: center;
   text-transform: uppercase;
@@ -418,7 +419,7 @@ h3 {
 .gallery-loading {
   padding: 42px 0;
   color: #6b645c;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-body);
   text-align: center;
 }
 
@@ -427,7 +428,7 @@ h3 {
   padding: 32px;
   border: 1px solid #d2cbc2;
   color: #6b645c;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-body);
   text-align: center;
 }
 
@@ -520,8 +521,8 @@ h3 {
 
 .lb-info h2 {
   margin: 0 0 12px;
-  font-size: 30px;
-  line-height: 1.02;
+  font-size:var(--text-section);
+  line-height:var(--leading-heading);
 }
 
 .lb-rule {
@@ -534,9 +535,9 @@ h3 {
 .lb-description {
   margin: 0 0 20px;
   color: #ddd6cc;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-family:var(--font-body);
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
 }
 
 .lb-facts {
@@ -551,7 +552,7 @@ h3 {
 .lb-facts dt {
   margin-bottom: 4px;
   color: #aaa198;
-  font-size: 7px;
+  font-size:var(--text-label);
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -559,9 +560,9 @@ h3 {
 .lb-facts dd {
   margin: 0;
   color: #eee8df;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 12px;
-  line-height: 1.35;
+  font-family:var(--font-body);
+  font-size:var(--text-small);
+  line-height:var(--leading-body);
 }
 
 .lb-thumbs {
@@ -593,7 +594,7 @@ h3 {
 .lb-index {
   margin-top: 14px;
   color: #bdb3a7;
-  font-size: 8px;
+  font-size:var(--text-label);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -602,7 +603,6 @@ h3 {
 
 @media (max-width: 900px) {
   .hero-layout {
-    height: auto;
     grid-template-columns: 1fr;
   }
 
@@ -657,7 +657,7 @@ h3 {
   .chip {
     height: 46px;
     padding: 6px 10px;
-    font-size: 8.5px;
+
   }
 
   .gallery-section {
@@ -683,7 +683,7 @@ h3 {
   .pagination-btn {
     height: 38px;
     padding: 0 11px;
-    font-size: 7px;
+
   }
 
   .pagination-page {

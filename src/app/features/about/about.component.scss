@@ -1,3 +1,5 @@
+@use '../../../styles/hero';
+
 :host {
   display: block;
   min-height: 100vh;
@@ -10,7 +12,7 @@
 }
 
 .page {
-  width: min(1024px, 100%);
+  width: min(var(--page-max-width), 100%);
   margin: 0 auto;
   background: #fbfaf7;
   box-shadow: 0 0 38px rgba(0, 0, 0, .12);
@@ -20,13 +22,13 @@
 h1,
 h2,
 h3 {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-heading);
   font-weight: 400;
 }
 
 .micro,
 .eyebrow {
-  font-size: 9px;
+  font-size:var(--text-label);
   letter-spacing: .2em;
   text-transform: uppercase;
 }
@@ -36,7 +38,7 @@ h3 {
   display: grid;
   place-items: center;
   background: #efede8;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-body);
   color: #615b54;
 }
 
@@ -48,11 +50,12 @@ h3 {
 .hero {
   display: grid;
   grid-template-columns: 343px 1fr;
-  height: 350px;
+  @include hero.frame(var(--hero-profile-height), 760px);
   background: #efede8;
 }
 
 .hero-copy {
+  @include hero.copy;
   padding: 56px 48px 40px 63px;
   background: #615d57;
   color: #fff;
@@ -64,17 +67,16 @@ h3 {
 
 .hero-copy h1 {
   margin: 15px 0 18px;
-  font-size: 49px;
-  line-height: .96;
-  white-space: nowrap;
+  line-height:var(--leading-heading);
+  white-space:normal;overflow-wrap:anywhere;
 }
 
 .hero-copy p {
   max-width: 245px;
   margin: 0;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 13px;
-  line-height: 1.55;
+  font-family:var(--font-body);
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
   color: #f1ede7;
 }
 
@@ -84,6 +86,8 @@ h3 {
 }
 
 .hero-image img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -112,8 +116,8 @@ h3 {
 
 .bio-title h2 {
   margin: 10px 0 0;
-  font-size: 34px;
-  line-height: 1.03;
+  font-size:var(--text-section);
+  line-height:var(--leading-heading);
 }
 
 .bio-title h2::after {
@@ -126,10 +130,10 @@ h3 {
 }
 
 .bio-copy {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-body);
   color: #514c46;
-  font-size: 15px;
-  line-height: 1.68;
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
 }
 
 .preserve-lines {
@@ -146,8 +150,8 @@ h3 {
 .quote-band blockquote {
   max-width: 780px;
   margin: 0 auto;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 28px;
+  font-family:var(--font-heading);
+  font-size:var(--text-quote);
   line-height: 1.32;
   color: #34302b;
 }
@@ -164,7 +168,7 @@ h3 {
 
 .signature {
   margin-top: 18px;
-  font-size: 8px;
+  font-size:var(--text-label);
   letter-spacing: .19em;
   text-transform: uppercase;
   color: #7e766e;
@@ -194,7 +198,7 @@ h3 {
 .trajectory-head h2,
 .projection-head h2 {
   margin: 0;
-  font-size: 33px;
+  font-size:var(--text-section);
 }
 
 .axes-head p,
@@ -203,9 +207,9 @@ h3 {
 .projection-head p {
   margin: 3px 0 0;
   max-width: 610px;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 14px;
-  line-height: 1.6;
+  font-family:var(--font-body);
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
 }
 
 .axes-head p,
@@ -253,16 +257,16 @@ h3 {
 
 .axis-copy h3 {
   margin: 8px 0 12px;
-  font-size: 24px;
-  line-height: 1.05;
+  font-size:var(--text-card);
+  line-height:var(--leading-heading);
 }
 
 .axis-copy p {
   margin: 0;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-body);
   color: #5f5952;
-  font-size: 12.5px;
-  line-height: 1.58;
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
 }
 
 /* PROCESS */
@@ -297,7 +301,7 @@ h3 {
 }
 
 .step-num {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-body);
   font-size: 20px;
   color: #e5c98f;
 }
@@ -305,7 +309,7 @@ h3 {
 .step strong {
   display: block;
   margin-top: 7px;
-  font-size: 8px;
+  font-size:var(--text-label);
   font-weight: 500;
   letter-spacing: .16em;
   text-transform: uppercase;
@@ -314,9 +318,9 @@ h3 {
 .step span {
   display: block;
   margin-top: 7px;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 11px;
-  line-height: 1.4;
+  font-family:var(--font-body);
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
   color: #dfd9d1;
 }
 
@@ -348,8 +352,8 @@ h3 {
 
 .social-copy h2 {
   margin: 9px 0 17px;
-  font-size: 36px;
-  line-height: 1.02;
+  font-size:var(--text-section);
+  line-height:var(--leading-heading);
 }
 
 .social-copy .line {
@@ -360,10 +364,10 @@ h3 {
 }
 
 .social-copy .preserve-lines {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-body);
   color: #59534c;
-  font-size: 13.5px;
-  line-height: 1.62;
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
 }
 
 .text-link {
@@ -373,8 +377,8 @@ h3 {
   border-bottom: 1px solid #3c3833;
   color: inherit;
   text-decoration: none;
-  font-size: 8px;
-  letter-spacing: .17em;
+
+
   text-transform: uppercase;
 }
 
@@ -401,22 +405,22 @@ h3 {
 }
 
 .year {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-body);
   font-size: 24px;
   color: #9b7d4f;
 }
 
 .year-copy h3 {
   margin: 0 0 5px;
-  font-size: 18px;
+  font-size:var(--text-card);
 }
 
 .year-copy p {
   margin: 0;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-heading);
   color: #625c55;
-  font-size: 12.5px;
-  line-height: 1.5;
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
 }
 
 .trajectory-link,
@@ -463,15 +467,15 @@ h3 {
 
 .proj-card h3 {
   margin: 8px 0 11px;
-  font-size: 20px;
+  font-size:var(--text-card);
 }
 
 .proj-card p {
   margin: 0;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-body);
   color: #5f5952;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
 }
 
 /* CTA */
@@ -486,14 +490,14 @@ h3 {
 
 .cta h2 {
   margin: 0 0 7px;
-  font-size: 30px;
+  font-size:var(--text-section);
 }
 
 .cta p {
   margin: 0;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-body);
   color: #645e57;
-  font-size: 13px;
+  font-size:var(--text-body);
 }
 
 .cta-btn {
@@ -505,8 +509,8 @@ h3 {
   border: 1px solid #282521;
   color: inherit;
   text-decoration: none;
-  font-size: 8px;
-  letter-spacing: .17em;
+
+
   text-transform: uppercase;
 }
 
@@ -517,7 +521,6 @@ h3 {
 
 @media (max-width: 760px) {
   .hero {
-    height: auto;
     grid-template-columns: 1fr;
   }
 
@@ -530,7 +533,7 @@ h3 {
   }
 
   .hero-image {
-    height: 300px;
+    height: 220px;
   }
 
   .bio,
@@ -551,7 +554,7 @@ h3 {
   }
 
   .quote-band blockquote {
-    font-size: 23px;
+    font-size:var(--text-quote);
   }
 
   .axes,
