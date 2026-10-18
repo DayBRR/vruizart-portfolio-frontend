@@ -10,7 +10,7 @@
 }
 
 .page {
-  width: min(1024px, 100%);
+  width: min(var(--page-max-width), 100%);
   margin: 0 auto;
   background: #fbfaf7;
   box-shadow: 0 0 38px rgba(0, 0, 0, .12);

@@ -6,7 +6,7 @@
 }
 
 .contact-page {
-  width: min(1024px, 100%);
+  width: min(var(--page-max-width), 100%);
   margin: 0 auto;
   overflow: hidden;
   background: #fbfaf7;
