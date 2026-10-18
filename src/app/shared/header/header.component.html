@@ -1,15 +1,15 @@
 <header class="topbar">
-  <div class="logo">
+  <a routerLink="/" class="logo" aria-label="Vicente Ruiz - Inicio">
     Vicente Ruiz
-  </div>
+  </a>
 
   <nav class="nav" aria-label="Navegación principal">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
-    <a routerLink="/obra" routerLinkActive="active">Galería</a>
-    <a routerLink="/exposiciones" routerLinkActive="active">Exposiciones</a>
-    <a routerLink="/publicaciones" routerLinkActive="active">Dónde encontrarme</a>
-    <a routerLink="/sobre-mi" routerLinkActive="active">Sobre mí</a>
-    <a routerLink="/contacto" routerLinkActive="active">Contacto</a>
+    <a routerLink="/" routerLinkActive="active" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+    <a routerLink="/obra" routerLinkActive="active" ariaCurrentWhenActive="page">Galería</a>
+    <a routerLink="/exposiciones" routerLinkActive="active" ariaCurrentWhenActive="page">Exposiciones</a>
+    <a routerLink="/publicaciones" routerLinkActive="active" ariaCurrentWhenActive="page">Dónde encontrarme</a>
+    <a routerLink="/sobre-mi" routerLinkActive="active" ariaCurrentWhenActive="page">Sobre mí</a>
+    <a routerLink="/contacto" routerLinkActive="active" ariaCurrentWhenActive="page">Contacto</a>
   </nav>
 
   <a routerLink="/" class="header-logo" aria-label="Vicente Ruiz - Inicio" (click)="closeMenu()">
@@ -17,12 +17,12 @@
   </a>
 
   <button
+    #menuToggle
     class="menu-toggle"
     type="button"
-    [class.open]="menuOpen"
     [attr.aria-expanded]="menuOpen"
     aria-controls="mobile-menu"
-    aria-label="Abrir o cerrar menú"
+    [attr.aria-label]="menuOpen ? 'Cerrar menú' : 'Abrir menú'"
     (click)="toggleMenu()"
   >
     <span></span>
@@ -30,14 +30,21 @@
     <span></span>
   </button>
 
-  <div class="mobile-menu-backdrop" [class.open]="menuOpen" (click)="closeMenu()"></div>
-
-  <nav id="mobile-menu" class="mobile-menu" [class.open]="menuOpen" aria-label="Navegación móvil">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a>
-    <a routerLink="/obra" routerLinkActive="active" (click)="closeMenu()">Galería</a>
-    <a routerLink="/exposiciones" routerLinkActive="active" (click)="closeMenu()">Exposiciones</a>
-    <a routerLink="/publicaciones" routerLinkActive="active" (click)="closeMenu()">Dónde encontrarme</a>
-    <a routerLink="/sobre-mi" routerLinkActive="active" (click)="closeMenu()">Sobre mí</a>
-    <a routerLink="/contacto" routerLinkActive="active" (click)="closeMenu()">Contacto</a>
-  </nav>
+  @if (menuOpen) {
+    <div class="mobile-menu-backdrop" aria-hidden="true" (click)="closeMenu()"></div>
+    <div #mobileMenu id="mobile-menu" class="mobile-menu" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+      <div class="mobile-menu-head">
+        <span>Navegación</span>
+        <button type="button" class="menu-close" aria-label="Cerrar menú" (click)="closeMenu()">×</button>
+      </div>
+      <nav aria-label="Navegación móvil">
+        <a routerLink="/" routerLinkActive="active" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a>
+        <a routerLink="/obra" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()">Galería</a>
+        <a routerLink="/exposiciones" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()">Exposiciones</a>
+        <a routerLink="/publicaciones" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()">Dónde encontrarme</a>
+        <a routerLink="/sobre-mi" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()">Sobre mí</a>
+        <a routerLink="/contacto" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()">Contacto</a>
+      </nav>
+    </div>
+  }
 </header>

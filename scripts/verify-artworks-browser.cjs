@@ -101,202 +101,99 @@ const server = http.createServer((req, res) => {
       throw new Error('Timed out: ' + expression);
     };
     const navigate = async route => { await send('Page.navigate', { url: origin + route }); await waitFor('!!document.querySelector(".collection-cover, .gallery-section") && !document.querySelector(".gallery-loading")'); };
-    if (process.argv.includes('--viewer')) {
-      const portrait = '/assets/images/artworks/leyendas-de-la-musica/Amaral.jpg';
-      const landscape = '/assets/images/artworks/paisaje-urbano/Casa%20Perico.jpg';
-      const square = '/assets/images/artworks/20x20/After%20Painting.jpg';
-      works.forEach((w, i) => { w.mainImageUrl = [portrait, landscape, square][i % 3]; w.description = 'Descripción de prueba. '; w.widthCm = 60; w.heightCm = 80; });
-      works[0].images = [{ imageUrl: portrait, sortOrder: 0, main: true }, { imageUrl: landscape, sortOrder: 1, main: false }];
+    if (process.argv.includes('--header')) {
       await send('Page.bringToFront');
       await send('Emulation.setFocusEmulationEnabled', { enabled: true });
       const key = async (key, modifiers = 0) => {
-        await send('Input.dispatchKeyEvent', { type: 'keyDown', key, code: key, modifiers });
+        await send('Input.dispatchKeyEvent', { type: 'keyDown', key, code: key, modifiers, ...(key === 'Enter' ? { text: '\r', windowsVirtualKeyCode: 13 } : {}) });
         await send('Input.dispatchKeyEvent', { type: 'keyUp', key, code: key, modifiers });
       };
-      const openFirst = async () => {
-        await evaluate('(() => {const c=document.querySelector(".art-card");c.scrollIntoView({block:"center"});c.focus();c.click();})()');
-        await waitFor('!!document.querySelector(".lightbox-image img.loaded")');
-      };
-      const title = () => evaluate('document.querySelector("#viewer-title").textContent.trim()');
-      const checkBounds = async () => {
-        const result = await evaluate(`(() => {
-          const r=s=>{const e=document.querySelector(s),r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
-          return { shell:r('.lightbox-shell'), image:r('.lightbox-image img'), stage:r('.lightbox-image'), close:r('.lb-close'),
-            viewport:{width:innerWidth,height:innerHeight}, fit:getComputedStyle(document.querySelector('.lightbox-image img')).objectFit,
-            shellOverflow:document.querySelector('.lightbox-shell').scrollHeight > document.querySelector('.lightbox-shell').clientHeight,
-            overflow:document.documentElement.scrollWidth > innerWidth };
-        })()`);
-        assert.equal(result.fit, 'contain');
-        assert.equal(result.overflow, false);
-        assert.equal(result.shellOverflow, false);
-        assert.ok(result.shell.y >= 0 && result.shell.bottom <= result.viewport.height + 1, 'modal outside viewport');
-        assert.ok(result.image.x >= result.stage.x && result.image.right <= result.stage.right + 1 && result.image.y >= result.stage.y && result.image.bottom <= result.stage.bottom + 1, 'painting clipped');
-        assert.ok(result.close.width >= 44 && result.close.height >= 44 && result.close.y >= 0 && result.close.bottom <= result.viewport.height, 'close button inaccessible');
-        return result;
-      };
-      for (const [width, height] of [[1440,900],[1280,720],[1024,600],[820,900],[390,844],[844,390],[390,600]]) {
-        await send('Emulation.setDeviceMetricsOverride', {width,height,deviceScaleFactor:1,mobile:false});
-        await navigate('/obra/catalogo');
-        await openFirst();
-        const initial = await checkBounds();
-        assert.equal(await evaluate('document.activeElement.classList.contains("lb-close")'), true);
-        assert.equal(await evaluate('document.querySelector("main").inert'), true);
-        assert.equal(await evaluate('document.body.style.overflow'), 'hidden');
-        const requestCount = requests.length;
-        assert.equal(await evaluate('document.querySelector(".artwork-previous").disabled'), true);
-        assert.equal(await evaluate('document.querySelector(".artwork-position").textContent.trim()'), '1 / 12');
-        const firstTitle = await title();
-        await evaluate('document.querySelector(".lb-next").click()');
-        await waitFor('document.querySelector(".image-navigation span").textContent.includes("2 de 2") && !!document.querySelector(".lightbox-image img.loaded")');
-        assert.equal(await title(), firstTitle, 'image navigation changed artwork');
-        await evaluate('document.querySelectorAll(".lb-thumb")[0].click()');
-        await waitFor('document.querySelectorAll(".lb-thumb")[0].getAttribute("aria-pressed") === "true" && !!document.querySelector(".lightbox-image img.loaded")');
-        await evaluate('document.querySelector(".artwork-next").click()');
-        await waitFor('document.querySelector(".artwork-position").textContent.trim() === "2 / 12" && !!document.querySelector(".lightbox-image img.loaded")');
-        await key('ArrowRight');
-        await waitFor('document.querySelector(".artwork-position").textContent.trim() === "3 / 12" && !!document.querySelector(".lightbox-image img.loaded")');
-        await checkBounds();
-        await key('ArrowLeft');
-        await waitFor('document.querySelector(".artwork-position").textContent.trim() === "2 / 12"');
-        assert.equal(requests.length, requestCount, 'viewer requested backend data');
-        await evaluate('document.querySelector(".lb-info").focus()');
-        await key('Tab');
-        assert.equal(await evaluate('document.activeElement.classList.contains("lb-close")'), true);
-        await key('Tab',8);
-        assert.equal(await evaluate('document.activeElement.classList.contains("lb-info")'), true);
-        if (width === 1440 || width === 390 && height === 844) {
-          await waitFor('!!document.querySelector(".lightbox-image img.loaded")');
-          const capture = await send('Page.captureScreenshot', {format:'png'});
-          fs.writeFileSync(`.angular/artwork-viewer-${width === 1440 ? 'desktop' : 'mobile'}.png`,Buffer.from(capture.data,'base64'));
-        }
-        const scrollBefore = await evaluate('scrollY');
-        await key('Escape');
-        await waitFor('!document.querySelector(".lightbox")');
-        assert.equal(await evaluate('document.body.style.overflow'), '');
-        assert.equal(await evaluate('document.documentElement.style.overflow'), '');
-        assert.equal(await evaluate('document.activeElement === document.querySelector(".art-card")'), true);
-        assert.equal(await evaluate('document.querySelector("main").inert'), false);
-        assert.equal(await evaluate('scrollY'), scrollBefore);
-        console.log(`Viewer ${width}x${height}: bounds, artwork/image navigation, focus trap, Escape, scroll and zero backend requests passed`);
-      }
-      works[0].description = 'Descripción larga de prueba. '.repeat(200);
-      await navigate('/obra/catalogo');
-      await openFirst();
-      const before = await checkBounds();
-      assert.equal(await evaluate('document.querySelector(".lb-info").scrollHeight > document.querySelector(".lb-info").clientHeight'), true);
-      await evaluate('document.querySelector(".lb-info").scrollTop = 10000');
-      const after = await checkBounds();
-      assert.deepEqual(after.stage,before.stage,'info scroll moved painting');
-      await evaluate('document.querySelector(".lb-close").click()');
-      await navigate('/obra/obra-00');
-      await waitFor('!!document.querySelector(".lightbox-image img.loaded")');
-      assert.equal(await evaluate('document.querySelector(".artwork-navigation") === null'), true, 'single direct detail exposes unrelated results');
-      await key('Escape');
-      works[0].description = 'Descripción de prueba';
-      await navigate('/obra');
-      await openFirst();
-      assert.equal(await evaluate('document.querySelector(".artwork-position").textContent.trim()'), '1 / 4');
-      await key('Escape');
-      await send('Page.navigate', {url:origin+'/'});
-      await waitFor('!!document.querySelector(".featured-work")');
-      await evaluate('document.querySelector(".featured-work").click()');
-      await waitFor('!!document.querySelector(".lightbox-image img.loaded")');
-      assert.equal(await evaluate('document.querySelector(".artwork-position").textContent.trim()'), '1 / 2');
-      assert.equal(await evaluate('document.querySelector(".lb-info").textContent.includes("Estado")'), true);
-      await key('Escape');
-      assert.equal(await evaluate('document.body.style.overflow'), '');
-      console.log('Viewer long description, standalone detail, collection preview and Home shared behavior passed');
-      return;
-    }
-    if (process.argv.includes('--cards')) {
-      const asset = file => '/assets/images/artworks/' + file.split('/').map(encodeURIComponent).join('/');
-      const portraits = ['Amaral', 'Bowie II', 'Bunbury II', 'Cyrus'].map(name => asset(`leyendas-de-la-musica/${name}.jpg`));
-      const landscapes = [asset('otras-obras/Mi primer Rembrandt.jpg'), asset('otras-obras/Nadie me abraza.jpg'), asset('paisaje-urbano/Casa Perico.jpg'), asset('paisaje-urbano/Fábrica abandonada.jpg')];
-      if (process.argv.includes('--urban')) {
-        portraits.splice(0, portraits.length, ...['Cara oculta de Piazza San Marco', 'Entrando al Tercer Milenio', 'Imagine', 'Paseo por Tetuan'].map(name => asset(`paisaje-urbano/${name}.jpg`)));
-        landscapes.splice(0, landscapes.length, ...['Casa Perico', 'Fábrica abandonada', 'Incomunicacion', 'The Big Apple'].map(name => asset(`paisaje-urbano/${name}.jpg`)));
-      }
-      const mixed = [portraits[0], landscapes[0], asset('20x20/After Painting.jpg'), portraits[1]];
-      if (process.argv.includes('--urban')) mixed[2] = asset('paisaje-urbano/Basílica del Pilar.jpg');
-      works.splice(0, works.length, ...[...portraits, ...landscapes, ...mixed].map((mainImageUrl, i) => ({
-        ...works[0], slug: `visual-${String(i).padStart(2, '0')}`, collectionSlug: 'serie', mainImageUrl,
-        title: i % 3 === 0 ? 'Una obra con un título largo que necesita varias líneas para mostrarse completo' : `Obra ${i + 1}`
-      })));
-      const loaded = async () => {
-        const count = await evaluate('document.querySelectorAll(".art-card").length');
-        for (let i = 0; i < count; i++) await evaluate(`document.querySelectorAll('.art-card')[${i}].scrollIntoView({block:'center'})`);
-        await waitFor('[...document.querySelectorAll(".art-card img")].every(i => i.complete && i.naturalWidth > 0)');
-      };
-      const metrics = () => evaluate(`(() => {
-        const rect = e => {const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom,right:r.right};};
-        return [...document.querySelectorAll('.art-card')].map(c => {
-          const img=c.querySelector('img'); return { card:rect(c), zone:rect(c.querySelector('.art-image-wrap')),
-            title:rect(c.querySelector('h3')), meta:rect(c.querySelector('.art-caption p')), image:rect(img),
-            naturalWidth:img.naturalWidth, naturalHeight:img.naturalHeight, fit:getComputedStyle(img).objectFit };
-        });
+      const layout = () => evaluate(`(() => {
+        const rect = s => { const e = document.querySelector(s), r = e.getBoundingClientRect(); return { x:r.x, y:r.y, right:r.right, bottom:r.bottom, width:r.width, height:r.height, scroll:e.scrollWidth, client:e.clientWidth }; };
+        const links = [...document.querySelectorAll('.nav a')].map(e => { const r = e.getBoundingClientRect(); return { x:r.x, y:r.y, right:r.right, bottom:r.bottom, width:r.width, height:r.height, scroll:e.scrollWidth, client:e.clientWidth }; });
+        return { brand:rect('.logo'), bar:rect('.topbar'), monogram:rect('.header-logo'), links,
+          collapsed:getComputedStyle(document.querySelector('.nav')).display === 'none',
+          overflow:document.documentElement.scrollWidth > innerWidth,
+          position:getComputedStyle(document.querySelector('.topbar')).position };
       })()`);
-      const check = async columns => {
-        const cards = await metrics();
-        assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true);
-        for (let i = 0; i < cards.length; i++) {
-          const c = cards[i], first = cards[i - i % columns];
-          assert.ok(Math.abs(c.zone.y - first.zone.y) < 1, 'image zones not aligned');
-          assert.ok(Math.abs(c.zone.height - first.zone.height) < 1, 'image zones differ in height');
-          assert.ok(Math.abs(c.title.y - first.title.y) < 1, 'titles not aligned');
-          assert.ok(Math.abs(c.meta.y - first.meta.y) < 1, 'metadata not aligned');
-          assert.ok(c.title.bottom <= c.meta.y, 'title overlaps metadata');
-          assert.ok(c.image.x >= c.zone.x && c.image.right <= c.zone.right, 'image clipped horizontally');
-          assert.ok(c.image.y >= c.zone.y && c.image.bottom <= c.zone.bottom, 'image clipped vertically');
-          assert.ok(Math.abs(c.image.x + c.image.width/2 - c.zone.x - c.zone.width/2) < 1, 'image not centered horizontally');
-          assert.ok(Math.abs(c.image.y + c.image.height/2 - c.zone.y - c.zone.height/2) < 1, 'image not centered vertically');
-          assert.ok(Math.abs(c.image.width/c.image.height - c.naturalWidth/c.naturalHeight) < .01, 'image distorted');
-          assert.ok(c.image.width <= c.naturalWidth + 1, 'image enlarged beyond natural size');
-          assert.equal(c.fit, 'contain');
-          if (i + columns < cards.length) assert.ok(c.meta.bottom < cards[i + columns].zone.y, 'rows overlap');
-        }
-      };
-      const screenshot = async name => {
-        const clip = await evaluate(`(() => {const r=document.querySelector('.art-grid').getBoundingClientRect();return {x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:r.height,scale:1};})()`);
-        const capture = await send('Page.captureScreenshot', { format:'png', captureBeyondViewport:true, clip });
-        fs.writeFileSync(`.angular/artwork-cards-${name}.png`, Buffer.from(capture.data,'base64'));
-      };
-      for (const route of ['/obra/catalogo', '/obra/coleccion/serie']) {
-        await navigate(route);
-        for (const [width, columns, name] of [[1440,4,'desktop'],[820,2,'tablet'],[390,1,'mobile']]) {
-          await send('Emulation.setDeviceMetricsOverride', {width,height:900,deviceScaleFactor:1,mobile:false});
-          await loaded();
-          await check(columns);
-          if (route === '/obra/catalogo') await screenshot(name);
-          console.log(`Cards ${route} ${width}px: portrait/landscape/mixed, title and metadata alignment, proportions, centering and no overflow passed`);
+      for (const route of ['/', '/obra']) {
+        await send('Page.navigate', { url: origin + route });
+        await waitFor('!!document.querySelector(".topbar")');
+        await evaluate('document.fonts.ready');
+        for (const width of [1920, 1440, 1280, 1121, 1120, 1024, 820, 390]) {
+          await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: false });
+          await evaluate('scrollTo(0, 0)');
+          const before = await layout();
+          assert.equal(before.overflow, false, `${route} at ${width}: horizontal overflow`);
+          assert.equal(before.collapsed, width <= 1120);
+          assert.equal(before.position, 'relative');
+          assert.ok(before.brand.right + 7 <= before.monogram.x);
+          if (!before.collapsed) {
+            assert.ok(before.brand.right < before.links[0].x, 'brand/menu overlap');
+            assert.ok(before.links.at(-1).right < before.monogram.x, 'menu/monogram overlap');
+            for (const link of before.links) {
+              assert.ok(link.scroll <= link.client + 1, 'link clipped');
+              assert.equal(link.y, before.links[0].y, 'links are not on one row');
+            }
+            assert.equal(await evaluate('document.querySelectorAll(".nav a[aria-current=page]").length'), 1);
+            await evaluate('document.querySelector(".nav a").focus()');
+            assert.equal(await evaluate('getComputedStyle(document.activeElement).outlineStyle'), 'solid');
+            if (width === 1440 && route === '/') {
+              const capture = await send('Page.captureScreenshot', { format: 'png' });
+              fs.writeFileSync('.angular/header-desktop.png', Buffer.from(capture.data, 'base64'));
+            }
+          } else {
+            await evaluate('document.querySelector(".menu-toggle").focus()');
+            await key('Enter');
+            await waitFor('!!document.querySelector(".mobile-menu")');
+            assert.equal(await evaluate('document.querySelector(".menu-toggle").getAttribute("aria-expanded")'), 'true');
+            assert.equal(await evaluate('document.activeElement === document.querySelector(".mobile-menu a")'), true);
+            assert.equal(await evaluate('document.querySelectorAll(".mobile-menu a[aria-current=page]").length'), 1);
+            assert.equal(await evaluate('document.body.style.overflow'), 'hidden');
+            assert.equal(await evaluate('(() => {const e=document.querySelector(".mobile-menu a:last-child"), r=e.getBoundingClientRect(); return e.contains(document.elementFromPoint(r.x+10,r.y+10));})()'), true, 'menu clipped by hero');
+            await evaluate('document.querySelector(".mobile-menu a:last-child").focus()');
+            await key('Tab');
+            assert.equal(await evaluate('document.activeElement.classList.contains("menu-close")'), true);
+            await key('Tab', 8);
+            assert.equal(await evaluate('document.activeElement === document.querySelector(".mobile-menu a:last-child")'), true);
+            if (width === 390 && route === '/') {
+              const capture = await send('Page.captureScreenshot', { format: 'png' });
+              fs.writeFileSync('.angular/header-mobile.png', Buffer.from(capture.data, 'base64'));
+            }
+            await key('Escape');
+            await waitFor('!document.querySelector(".mobile-menu")');
+            assert.equal(await evaluate('document.activeElement.classList.contains("menu-toggle")'), true);
+            assert.equal(await evaluate('document.body.style.overflow'), '');
+            assert.equal(await evaluate('document.querySelector(".menu-toggle").getAttribute("aria-expanded")'), 'false');
+            await evaluate('document.querySelector(".menu-toggle").click()');
+            await evaluate('document.querySelector(".mobile-menu-backdrop").click()');
+            await waitFor('!document.querySelector(".mobile-menu")');
+          }
+          await evaluate('scrollTo(0, 180)');
+          await delay(50);
+          const after = await layout();
+          assert.equal(after.bar.width, before.bar.width);
+          assert.equal(after.brand.x, before.brand.x);
+          assert.equal(after.monogram.x, before.monogram.x);
+          assert.ok(after.bar.y < before.bar.y, 'header unexpectedly sticky');
+          console.log(`Header ${route} ${width}px: layout, active link, keyboard and scroll passed`);
         }
       }
-      await send('Emulation.setDeviceMetricsOverride', {width:1440,height:900,deviceScaleFactor:1,mobile:false});
-      await evaluate('document.querySelector(".art-card").scrollIntoView({block:"center"})');
-      const before = await metrics();
-      const c = before[0].zone;
-      await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:c.x+c.width/2,y:c.y+c.height/2});
-      await delay(300);
-      const after = await metrics();
-      assert.deepEqual(after.map(c=>[c.card,c.zone,c.title,c.meta]),before.map(c=>[c.card,c.zone,c.title,c.meta]),'hover shifts layout');
-      assert.ok(Math.abs(after[0].image.width/before[0].image.width - 1.02) < .001);
-      assert.ok(after[0].image.x >= c.x && after[0].image.right <= c.right && after[0].image.y >= c.y && after[0].image.bottom <= c.bottom, 'hover clips painting');
-      await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
-      assert.equal(await evaluate('getComputedStyle(document.querySelector(".art-card img")).transform'),'none');
-      await evaluate('document.querySelector(".art-card").focus()');
-      assert.equal(await evaluate('getComputedStyle(document.querySelector(".art-image-wrap")).outlineStyle'),'solid');
-      await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',text:'\r',windowsVirtualKeyCode:13});
-      await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
-      await waitFor('!!document.querySelector(".lightbox")');
-      await evaluate('document.querySelector(".lb-close").click()');
-      // Exercise mixed formats in the four-item collection preview as well.
-      works.forEach((w,i)=>{w.mainImageUrl=mixed[i%4];});
-      await navigate('/obra');
-      await loaded();
-      await check(4);
-      await screenshot('collection-preview');
-      await evaluate('document.querySelector(".art-card").click()');
-      await waitFor('!!document.querySelector(".lightbox")');
-      console.log('Cards hover 1.02 without clipping/layout shift, reduced motion, keyboard/detail and collection preview passed');
+      await evaluate('scrollTo(0, 0); document.querySelector(".menu-toggle").click()');
+      await evaluate('document.querySelector(".mobile-menu a").click()');
+      await waitFor('location.pathname === "/" && !!document.querySelector(".topbar")');
+      assert.equal(await evaluate('document.querySelector(".mobile-menu") === null && document.body.style.overflow === ""'), true);
+      await evaluate('document.querySelector(".menu-toggle").click()');
+      await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+      await waitFor('!document.querySelector(".mobile-menu")');
+      assert.equal(await evaluate('document.body.style.overflow'), '');
+      console.log('Header navigation and resize cleanup passed');
+      for (const route of ['/obra', '/exposiciones', '/publicaciones', '/sobre-mi', '/contacto', '/']) {
+        await evaluate(`document.querySelector('.nav a[href="${route}"]').click()`);
+        await waitFor(`location.pathname === '${route}' && !!document.querySelector('.nav a[aria-current=page]')`);
+        assert.equal(await evaluate('document.querySelector(".nav a[aria-current=page]").getAttribute("href")'), route);
+      }
+      console.log('All six desktop navigation links and active indicators passed');
       return;
     }
     await navigate('/obra');
@@ -342,7 +239,7 @@ const server = http.createServer((req, res) => {
       assert.equal(await evaluate('document.querySelector(".pagination-prev").disabled'), true);
       for (const expectedPage of [2, 3, 4, 5, 6, 7, 8]) {
         await evaluate('document.querySelector(".pagination-next").click()');
-        await waitFor(`document.querySelector('[aria-current="page"]')?.textContent.trim() === '${expectedPage}'`);
+        await waitFor(`document.querySelector('.pagination-page[aria-current="page"]')?.textContent.trim() === '${expectedPage}'`);
         assert.equal((await numbers()).length, 5);
       }
       assert.deepEqual(await numbers(), [6, 7, 8, 9, 10]);
@@ -353,15 +250,15 @@ const server = http.createServer((req, res) => {
       assert.equal(await evaluate('getComputedStyle(document.activeElement).outlineStyle !== "none"'), true);
       await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', text: '\r', windowsVirtualKeyCode: 13 });
       await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
-      await waitFor('document.querySelector("[aria-current=page]")?.textContent.trim() === "9"');
+      await waitFor('document.querySelector(".pagination-page[aria-current=page]")?.textContent.trim() === "9"');
       for (let page = 10; page <= 20; page++) {
         await evaluate('document.querySelector(".pagination-next").click()');
-        await waitFor(`document.querySelector('[aria-current="page"]')?.textContent.trim() === '${page}'`);
+        await waitFor(`document.querySelector('.pagination-page[aria-current="page"]')?.textContent.trim() === '${page}'`);
       }
       assert.deepEqual(await numbers(), [16, 17, 18, 19, 20]);
       assert.equal(await evaluate('document.querySelector(".pagination-next").disabled'), true);
       await evaluate('document.querySelector(".pagination-prev").click()');
-      await waitFor('document.querySelector("[aria-current=page]")?.textContent.trim() === "19"');
+      await waitFor('document.querySelector(".pagination-page[aria-current=page]")?.textContent.trim() === "19"');
       for (const width of [1440, 820, 390]) {
         await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: false });
         assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true);
@@ -379,7 +276,7 @@ const server = http.createServer((req, res) => {
     await selectTechnique(exactTechnique);
     assert.equal(requests.at(-1).searchParams.get('technique'), exactTechnique);
     await evaluate('document.querySelector(".pagination-next").click()');
-    await waitFor('document.querySelector("[aria-current=page]")?.textContent.trim() === "2"');
+    await waitFor('document.querySelector(".pagination-page[aria-current=page]")?.textContent.trim() === "2"');
     assert.equal(requests.at(-1).searchParams.get('technique'), exactTechnique);
     await selectTechnique('Pastel sobre papel');
     assert.equal(requests.at(-1).searchParams.get('page'), '0');
