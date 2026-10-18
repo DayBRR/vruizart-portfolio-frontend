@@ -101,6 +101,113 @@ const server = http.createServer((req, res) => {
       throw new Error('Timed out: ' + expression);
     };
     const navigate = async route => { await send('Page.navigate', { url: origin + route }); await waitFor('!!document.querySelector(".collection-cover, .gallery-section") && !document.querySelector(".gallery-loading")'); };
+    if (process.argv.includes('--viewer')) {
+      const portrait = '/assets/images/artworks/leyendas-de-la-musica/Amaral.jpg';
+      const landscape = '/assets/images/artworks/paisaje-urbano/Casa%20Perico.jpg';
+      const square = '/assets/images/artworks/20x20/After%20Painting.jpg';
+      works.forEach((w, i) => { w.mainImageUrl = [portrait, landscape, square][i % 3]; w.description = 'Descripción de prueba. '; w.widthCm = 60; w.heightCm = 80; });
+      works[0].images = [{ imageUrl: portrait, sortOrder: 0, main: true }, { imageUrl: landscape, sortOrder: 1, main: false }];
+      await send('Page.bringToFront');
+      await send('Emulation.setFocusEmulationEnabled', { enabled: true });
+      const key = async (key, modifiers = 0) => {
+        await send('Input.dispatchKeyEvent', { type: 'keyDown', key, code: key, modifiers });
+        await send('Input.dispatchKeyEvent', { type: 'keyUp', key, code: key, modifiers });
+      };
+      const openFirst = async () => {
+        await evaluate('(() => {const c=document.querySelector(".art-card");c.scrollIntoView({block:"center"});c.focus();c.click();})()');
+        await waitFor('!!document.querySelector(".lightbox-image img.loaded")');
+      };
+      const title = () => evaluate('document.querySelector("#viewer-title").textContent.trim()');
+      const checkBounds = async () => {
+        const result = await evaluate(`(() => {
+          const r=s=>{const e=document.querySelector(s),r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
+          return { shell:r('.lightbox-shell'), image:r('.lightbox-image img'), stage:r('.lightbox-image'), close:r('.lb-close'),
+            viewport:{width:innerWidth,height:innerHeight}, fit:getComputedStyle(document.querySelector('.lightbox-image img')).objectFit,
+            shellOverflow:document.querySelector('.lightbox-shell').scrollHeight > document.querySelector('.lightbox-shell').clientHeight,
+            overflow:document.documentElement.scrollWidth > innerWidth };
+        })()`);
+        assert.equal(result.fit, 'contain');
+        assert.equal(result.overflow, false);
+        assert.equal(result.shellOverflow, false);
+        assert.ok(result.shell.y >= 0 && result.shell.bottom <= result.viewport.height + 1, 'modal outside viewport');
+        assert.ok(result.image.x >= result.stage.x && result.image.right <= result.stage.right + 1 && result.image.y >= result.stage.y && result.image.bottom <= result.stage.bottom + 1, 'painting clipped');
+        assert.ok(result.close.width >= 44 && result.close.height >= 44 && result.close.y >= 0 && result.close.bottom <= result.viewport.height, 'close button inaccessible');
+        return result;
+      };
+      for (const [width, height] of [[1440,900],[1280,720],[1024,600],[820,900],[390,844],[844,390],[390,600]]) {
+        await send('Emulation.setDeviceMetricsOverride', {width,height,deviceScaleFactor:1,mobile:false});
+        await navigate('/obra/catalogo');
+        await openFirst();
+        const initial = await checkBounds();
+        assert.equal(await evaluate('document.activeElement.classList.contains("lb-close")'), true);
+        assert.equal(await evaluate('document.querySelector("main").inert'), true);
+        assert.equal(await evaluate('document.body.style.overflow'), 'hidden');
+        const requestCount = requests.length;
+        assert.equal(await evaluate('document.querySelector(".artwork-previous").disabled'), true);
+        assert.equal(await evaluate('document.querySelector(".artwork-position").textContent.trim()'), '1 / 12');
+        const firstTitle = await title();
+        await evaluate('document.querySelector(".lb-next").click()');
+        await waitFor('document.querySelector(".image-navigation span").textContent.includes("2 de 2") && !!document.querySelector(".lightbox-image img.loaded")');
+        assert.equal(await title(), firstTitle, 'image navigation changed artwork');
+        await evaluate('document.querySelectorAll(".lb-thumb")[0].click()');
+        await waitFor('document.querySelectorAll(".lb-thumb")[0].getAttribute("aria-pressed") === "true" && !!document.querySelector(".lightbox-image img.loaded")');
+        await evaluate('document.querySelector(".artwork-next").click()');
+        await waitFor('document.querySelector(".artwork-position").textContent.trim() === "2 / 12" && !!document.querySelector(".lightbox-image img.loaded")');
+        await key('ArrowRight');
+        await waitFor('document.querySelector(".artwork-position").textContent.trim() === "3 / 12" && !!document.querySelector(".lightbox-image img.loaded")');
+        await checkBounds();
+        await key('ArrowLeft');
+        await waitFor('document.querySelector(".artwork-position").textContent.trim() === "2 / 12"');
+        assert.equal(requests.length, requestCount, 'viewer requested backend data');
+        await evaluate('document.querySelector(".lb-info").focus()');
+        await key('Tab');
+        assert.equal(await evaluate('document.activeElement.classList.contains("lb-close")'), true);
+        await key('Tab',8);
+        assert.equal(await evaluate('document.activeElement.classList.contains("lb-info")'), true);
+        if (width === 1440 || width === 390 && height === 844) {
+          await waitFor('!!document.querySelector(".lightbox-image img.loaded")');
+          const capture = await send('Page.captureScreenshot', {format:'png'});
+          fs.writeFileSync(`.angular/artwork-viewer-${width === 1440 ? 'desktop' : 'mobile'}.png`,Buffer.from(capture.data,'base64'));
+        }
+        const scrollBefore = await evaluate('scrollY');
+        await key('Escape');
+        await waitFor('!document.querySelector(".lightbox")');
+        assert.equal(await evaluate('document.body.style.overflow'), '');
+        assert.equal(await evaluate('document.documentElement.style.overflow'), '');
+        assert.equal(await evaluate('document.activeElement === document.querySelector(".art-card")'), true);
+        assert.equal(await evaluate('document.querySelector("main").inert'), false);
+        assert.equal(await evaluate('scrollY'), scrollBefore);
+        console.log(`Viewer ${width}x${height}: bounds, artwork/image navigation, focus trap, Escape, scroll and zero backend requests passed`);
+      }
+      works[0].description = 'Descripción larga de prueba. '.repeat(200);
+      await navigate('/obra/catalogo');
+      await openFirst();
+      const before = await checkBounds();
+      assert.equal(await evaluate('document.querySelector(".lb-info").scrollHeight > document.querySelector(".lb-info").clientHeight'), true);
+      await evaluate('document.querySelector(".lb-info").scrollTop = 10000');
+      const after = await checkBounds();
+      assert.deepEqual(after.stage,before.stage,'info scroll moved painting');
+      await evaluate('document.querySelector(".lb-close").click()');
+      await navigate('/obra/obra-00');
+      await waitFor('!!document.querySelector(".lightbox-image img.loaded")');
+      assert.equal(await evaluate('document.querySelector(".artwork-navigation") === null'), true, 'single direct detail exposes unrelated results');
+      await key('Escape');
+      works[0].description = 'Descripción de prueba';
+      await navigate('/obra');
+      await openFirst();
+      assert.equal(await evaluate('document.querySelector(".artwork-position").textContent.trim()'), '1 / 4');
+      await key('Escape');
+      await send('Page.navigate', {url:origin+'/'});
+      await waitFor('!!document.querySelector(".featured-work")');
+      await evaluate('document.querySelector(".featured-work").click()');
+      await waitFor('!!document.querySelector(".lightbox-image img.loaded")');
+      assert.equal(await evaluate('document.querySelector(".artwork-position").textContent.trim()'), '1 / 2');
+      assert.equal(await evaluate('document.querySelector(".lb-info").textContent.includes("Estado")'), true);
+      await key('Escape');
+      assert.equal(await evaluate('document.body.style.overflow'), '');
+      console.log('Viewer long description, standalone detail, collection preview and Home shared behavior passed');
+      return;
+    }
     if (process.argv.includes('--cards')) {
       const asset = file => '/assets/images/artworks/' + file.split('/').map(encodeURIComponent).join('/');
       const portraits = ['Amaral', 'Bowie II', 'Bunbury II', 'Cyrus'].map(name => asset(`leyendas-de-la-musica/${name}.jpg`));

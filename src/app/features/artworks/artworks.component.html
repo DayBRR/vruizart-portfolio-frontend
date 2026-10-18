@@ -233,123 +233,8 @@
 </main>
 }
 @if (selectedArtwork) {
-  <div
-    class="lightbox open"
-    (click)="closeArtwork()"
-  >
-    <div
-      class="lightbox-shell"
-      role="dialog"
-      aria-modal="true"
-      [attr.aria-label]="'Detalle de ' + selectedArtwork.title"
-      (click)="$event.stopPropagation()"
-    >
-      <button
-        type="button"
-        class="lb-close"
-        aria-label="Cerrar detalle"
-        (click)="closeArtwork()"
-      >
-        ×
-      </button>
-
-      <div class="lightbox-image">
-        @if (selectedImageUrl) {
-          <img
-            [src]="selectedImageUrl"
-            [alt]="selectedImageAlt"
-          />
-        }
-
-        @if (selectedArtworkImages.length > 1) {
-          <button
-            type="button"
-            class="lb-nav lb-prev"
-            aria-label="Imagen anterior"
-            (click)="previousImage()"
-          >
-            ‹
-          </button>
-
-          <button
-            type="button"
-            class="lb-nav lb-next"
-            aria-label="Imagen siguiente"
-            (click)="nextImage()"
-          >
-            ›
-          </button>
-        }
-      </div>
-
-      <aside class="lb-info">
-        <div class="micro">
-          {{ selectedArtwork.collectionName || 'Obra' }}
-        </div>
-
-        <h2>{{ selectedArtwork.title }}</h2>
-
-        <div class="lb-rule"></div>
-
-        @if (selectedArtwork.description) {
-          <p class="lb-description">
-            {{ selectedArtwork.description }}
-          </p>
-        }
-
-        <dl class="lb-facts">
-          <div>
-            <dt>Año</dt>
-            <dd>{{ selectedArtwork.year || '—' }}</dd>
-          </div>
-
-          <div>
-            <dt>Técnica</dt>
-            <dd>{{ selectedArtwork.technique || '—' }}</dd>
-          </div>
-
-          <div>
-            <dt>Dimensiones</dt>
-            <dd>{{ getDimensions(selectedArtwork) }}</dd>
-          </div>
-
-          <div>
-            <dt>Colección</dt>
-            <dd>{{ selectedArtwork.collectionName || '—' }}</dd>
-          </div>
-
-        </dl>
-
-        @if (selectedArtworkImages.length > 1) {
-          <div class="lb-thumbs">
-            @for (
-              image of selectedArtworkImages;
-              track image.imageUrl;
-              let index = $index
-            ) {
-              <button
-                type="button"
-                class="lb-thumb"
-                [class.active]="selectedImageIndex === index"
-                (click)="selectImage(index)"
-                [attr.aria-label]="'Ver imagen ' + (index + 1)"
-              >
-                <img
-                  [src]="image.imageUrl"
-                  [alt]="image.altText || selectedArtwork.title"
-                />
-              </button>
-            }
-          </div>
-
-          <div class="lb-index">
-            {{ selectedImageIndex + 1 }} /
-            {{ selectedArtworkImages.length }}
-          </div>
-        }
-      </aside>
-    </div>
-  </div>
+  <app-artwork-viewer [artwork]="selectedArtwork" [artworks]="viewerArtworks"
+    (artworkChange)="selectedArtwork = $event" (closed)="closeArtwork()" />
 }
 <ng-template #artworkGrid let-items>
         <div class="art-grid">
@@ -358,9 +243,9 @@
               class="art-card"
               tabindex="0"
               role="button"
-              (click)="openArtwork(artwork)"
-              (keydown.enter)="openArtwork(artwork)"
-              (keydown.space)="$event.preventDefault(); openArtwork(artwork)"
+              (click)="openArtwork(artwork, items)"
+              (keydown.enter)="$event.preventDefault(); openArtwork(artwork, items)"
+              (keydown.space)="$event.preventDefault(); openArtwork(artwork, items)"
               [attr.aria-label]="'Ver detalle de ' + artwork.title"
             >
               <div class="art-image-wrap">
@@ -381,9 +266,7 @@
               </div>
 
               <div class="art-caption">
-                <h3>{{ artwork.title }}</h3>
-
-                <p>
+<p>
                   @if (artwork.year) {
                     {{ artwork.year }}
                   }
@@ -396,6 +279,7 @@
                     {{ artwork.technique }}
                   }
                 </p>
+              <h3>{{ artwork.title }}</h3>
               </div>
             </article>
           }

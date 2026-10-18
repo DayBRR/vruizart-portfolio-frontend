@@ -1,0 +1,54 @@
+<div class="lightbox" (click)="closed.emit()">
+  <section #dialog class="lightbox-shell" role="dialog" aria-modal="true"
+    aria-labelledby="viewer-title" (click)="$event.stopPropagation()">
+    <button #closeButton type="button" class="lb-close" aria-label="Cerrar detalle" (click)="closed.emit()">×</button>
+    <div class="lightbox-stage">
+      <div class="lightbox-image" [attr.aria-busy]="!!imageUrl && !imageLoaded && !imageError">
+        @if (imageUrl) {
+          @for (url of [imageUrl]; track artwork.slug + ':' + selectedImageIndex + ':' + url) {
+            <img [src]="url" [alt]="imageAlt" [class.loaded]="imageLoaded" (load)="imageLoaded = true" (error)="imageError = true" />
+          }
+          @if (!imageLoaded && !imageError) { <span class="image-status" role="status">Cargando imagen…</span> }
+          @if (imageError) { <span class="image-status" role="status">No se ha podido cargar la imagen.</span> }
+        } @else { <span class="image-status">Imagen no disponible</span> }
+      </div>
+      @if (images.length > 1) {
+        <div class="image-navigation" aria-label="Imágenes de esta obra">
+          <button type="button" class="lb-nav lb-prev" aria-label="Imagen anterior" (click)="changeImage(-1)">‹</button>
+          <span>Imagen {{ selectedImageIndex + 1 }} de {{ images.length }}</span>
+          <button type="button" class="lb-nav lb-next" aria-label="Imagen siguiente" (click)="changeImage(1)">›</button>
+        </div>
+      }
+      @if (canNavigate) {
+        <nav class="artwork-navigation" aria-label="Navegación entre obras">
+          <button type="button" class="artwork-previous" [disabled]="artworkIndex === 0" (click)="changeArtwork(-1)">← <span>Obra anterior</span></button>
+          <span class="artwork-position" aria-live="polite">{{ artworkIndex + 1 }} / {{ artworks.length }}</span>
+          <button type="button" class="artwork-next" [disabled]="artworkIndex === artworks.length - 1" (click)="changeArtwork(1)"><span>Obra siguiente</span> →</button>
+        </nav>
+      }
+    </div>
+    <aside #info class="lb-info" tabindex="0" aria-label="Información de la obra">
+      <div class="micro">{{ artwork.collectionName || 'Obra' }}</div>
+      <h2 id="viewer-title" aria-live="polite">{{ artwork.title }}</h2>
+      <div class="lb-rule"></div>
+      @if (artwork.description) { <p class="lb-description">{{ artwork.description }}</p> }
+      <dl class="lb-facts">
+        <div><dt>Año</dt><dd>{{ artwork.year || '—' }}</dd></div>
+        <div><dt>Técnica</dt><dd>{{ artwork.technique || '—' }}</dd></div>
+        <div><dt>Dimensiones</dt><dd>{{ dimensions }}</dd></div>
+        <div><dt>Colección</dt><dd>{{ artwork.collectionName || '—' }}</dd></div>
+        @for (fact of additionalFacts; track fact.label) { <div><dt>{{ fact.label }}</dt><dd>{{ fact.value }}</dd></div> }
+      </dl>
+      @if (images.length > 1) {
+        <div class="lb-thumbs" aria-label="Seleccionar imagen de esta obra">
+          @for (image of images; track image.imageUrl; let index = $index) {
+            <button type="button" class="lb-thumb" [class.active]="selectedImageIndex === index"
+              [attr.aria-pressed]="selectedImageIndex === index" [attr.aria-label]="'Ver imagen ' + (index + 1)" (click)="selectImage(index)">
+              <img [src]="image.imageUrl" [alt]="image.altText || artwork.title" loading="lazy" />
+            </button>
+          }
+        </div>
+      }
+    </aside>
+  </section>
+</div>
