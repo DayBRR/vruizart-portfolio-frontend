@@ -279,79 +279,93 @@ h3 {
 
 .art-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 34px 22px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 40px 22px;
+  align-items: start;
 }
 
 .art-card {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  justify-content: flex-end;
   cursor: pointer;
   outline: none;
 }
 
 .art-image-wrap {
   position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 360px;
+  flex-shrink: 0;
   overflow: hidden;
   background: transparent;
 }
 
 .art-card img {
-  width: 100%;
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: auto;
   height: auto;
+  max-width: calc(100% - 12px);
+  max-height: calc(100% - 12px);
+  margin: auto;
   object-fit: contain;
-  transition:
-    transform 0.45s ease,
-    filter 0.45s ease;
+  // Natural dimensions cap small images; the inset also contains the hover zoom.
+  transition: transform 250ms ease;
 }
 
 .art-hover {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  background: rgba(20, 18, 15, 0);
-  transition: background 0.35s ease;
+  padding: 12px;
+  pointer-events: none;
 }
 
 .art-hover span {
-  padding: 10px 13px;
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  color: white;
+  padding: 8px 12px;
+  border: 1px solid #d7d1c8;
+  background: rgba(251, 250, 247, .96);
+  color: #524c43;
   font-size:var(--text-label);
   letter-spacing: 0.18em;
   opacity: 0;
   text-transform: uppercase;
-  transform: translateY(4px);
-  transition: 0.35s ease;
+  transition: opacity 250ms ease;
 }
 
 .art-caption {
-  display: grid;
-  min-height: 48px;
-  grid-template-rows: minmax(18px, auto) 12px;
-  align-content: start;
-  padding-top: 10px;
+  overflow-wrap: anywhere;
 }
 
 .art-caption h3 {
-  margin: 0;
+  margin: 14px 0 0;
   font-size:var(--text-card);
   line-height:var(--leading-heading);
 }
 
 .art-caption p {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   color: #837c73;
-  font-size:var(--text-body);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size:var(--text-small);
+  line-height:var(--leading-body);
+}
+
+// Share image, title and metadata tracks across each row without truncating text.
+// Flex remains a usable fallback on older browsers without subgrid.
+@supports (grid-template-rows: subgrid) {
+  .art-card {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 3;
+    row-gap: 0;
+  }
+  .art-caption { display: contents; }
+  .art-caption h3, .art-caption p { overflow-wrap: anywhere; }
 }
 
 .art-card:focus-visible .art-image-wrap {
@@ -360,19 +374,19 @@ h3 {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .art-card:hover img {
-    filter: brightness(0.76);
-    transform: scale(1.018);
-  }
-
-  .art-card:hover .art-hover {
-    background: rgba(20, 18, 15, 0.12);
-  }
-
   .art-card:hover .art-hover span {
     opacity: 1;
-    transform: none;
   }
+}
+
+.art-card:focus-visible .art-hover span { opacity: 1; }
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .art-card:hover img { transform: scale(1.02); }
+}
+
+@media (max-width: 1000px) {
+  .art-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* PAGINATION */
@@ -831,15 +845,7 @@ h3 {
 }
 .back-navigation { padding: 30px 63px 0; }
 .back-navigation a, .catalog-action a { color: #5f5952; text-underline-offset: 5px; }
-.art-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start; }
-.art-card { justify-content: flex-start; }
-.art-image-wrap { height: 280px; align-items: center; }
-.art-card img { display: block; width: 100%; height: 100%; object-fit: contain; }
-.art-caption { display: block; min-height: 0; overflow-wrap: anywhere; }
-.art-caption p { font-size: var(--text-small); line-height: var(--leading-body); letter-spacing: 0; text-transform: none; }
 .collection-description { max-width: 720px; color: #5f5952; line-height: var(--leading-body); }
-@media (hover: hover) and (pointer: fine) { .art-card:hover img { transform: none; } }
-@media (max-width: 1000px) { .art-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 900px) {
   .collection-cover { padding: 48px 40px; }
   .back-navigation { padding: 28px 40px 0; }
@@ -848,10 +854,4 @@ h3 {
   .collection-cover { padding: 40px 28px; }
   .back-navigation { padding: 24px 28px 0; }
   .collection-preview + .collection-preview { margin-top: 60px; }
-  .art-image-wrap { height: 230px; }
-}
-@media (max-width: 440px) {
-  .art-grid { grid-template-columns: 1fr; }
-  .art-image-wrap { height: auto; min-height: 160px; }
-  .art-card img { height: auto; max-height: 380px; }
 }

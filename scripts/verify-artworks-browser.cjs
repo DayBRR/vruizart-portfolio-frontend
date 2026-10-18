@@ -101,6 +101,97 @@ const server = http.createServer((req, res) => {
       throw new Error('Timed out: ' + expression);
     };
     const navigate = async route => { await send('Page.navigate', { url: origin + route }); await waitFor('!!document.querySelector(".collection-cover, .gallery-section") && !document.querySelector(".gallery-loading")'); };
+    if (process.argv.includes('--cards')) {
+      const asset = file => '/assets/images/artworks/' + file.split('/').map(encodeURIComponent).join('/');
+      const portraits = ['Amaral', 'Bowie II', 'Bunbury II', 'Cyrus'].map(name => asset(`leyendas-de-la-musica/${name}.jpg`));
+      const landscapes = [asset('otras-obras/Mi primer Rembrandt.jpg'), asset('otras-obras/Nadie me abraza.jpg'), asset('paisaje-urbano/Casa Perico.jpg'), asset('paisaje-urbano/Fábrica abandonada.jpg')];
+      if (process.argv.includes('--urban')) {
+        portraits.splice(0, portraits.length, ...['Cara oculta de Piazza San Marco', 'Entrando al Tercer Milenio', 'Imagine', 'Paseo por Tetuan'].map(name => asset(`paisaje-urbano/${name}.jpg`)));
+        landscapes.splice(0, landscapes.length, ...['Casa Perico', 'Fábrica abandonada', 'Incomunicacion', 'The Big Apple'].map(name => asset(`paisaje-urbano/${name}.jpg`)));
+      }
+      const mixed = [portraits[0], landscapes[0], asset('20x20/After Painting.jpg'), portraits[1]];
+      if (process.argv.includes('--urban')) mixed[2] = asset('paisaje-urbano/Basílica del Pilar.jpg');
+      works.splice(0, works.length, ...[...portraits, ...landscapes, ...mixed].map((mainImageUrl, i) => ({
+        ...works[0], slug: `visual-${String(i).padStart(2, '0')}`, collectionSlug: 'serie', mainImageUrl,
+        title: i % 3 === 0 ? 'Una obra con un título largo que necesita varias líneas para mostrarse completo' : `Obra ${i + 1}`
+      })));
+      const loaded = async () => {
+        const count = await evaluate('document.querySelectorAll(".art-card").length');
+        for (let i = 0; i < count; i++) await evaluate(`document.querySelectorAll('.art-card')[${i}].scrollIntoView({block:'center'})`);
+        await waitFor('[...document.querySelectorAll(".art-card img")].every(i => i.complete && i.naturalWidth > 0)');
+      };
+      const metrics = () => evaluate(`(() => {
+        const rect = e => {const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom,right:r.right};};
+        return [...document.querySelectorAll('.art-card')].map(c => {
+          const img=c.querySelector('img'); return { card:rect(c), zone:rect(c.querySelector('.art-image-wrap')),
+            title:rect(c.querySelector('h3')), meta:rect(c.querySelector('.art-caption p')), image:rect(img),
+            naturalWidth:img.naturalWidth, naturalHeight:img.naturalHeight, fit:getComputedStyle(img).objectFit };
+        });
+      })()`);
+      const check = async columns => {
+        const cards = await metrics();
+        assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true);
+        for (let i = 0; i < cards.length; i++) {
+          const c = cards[i], first = cards[i - i % columns];
+          assert.ok(Math.abs(c.zone.y - first.zone.y) < 1, 'image zones not aligned');
+          assert.ok(Math.abs(c.zone.height - first.zone.height) < 1, 'image zones differ in height');
+          assert.ok(Math.abs(c.title.y - first.title.y) < 1, 'titles not aligned');
+          assert.ok(Math.abs(c.meta.y - first.meta.y) < 1, 'metadata not aligned');
+          assert.ok(c.title.bottom <= c.meta.y, 'title overlaps metadata');
+          assert.ok(c.image.x >= c.zone.x && c.image.right <= c.zone.right, 'image clipped horizontally');
+          assert.ok(c.image.y >= c.zone.y && c.image.bottom <= c.zone.bottom, 'image clipped vertically');
+          assert.ok(Math.abs(c.image.x + c.image.width/2 - c.zone.x - c.zone.width/2) < 1, 'image not centered horizontally');
+          assert.ok(Math.abs(c.image.y + c.image.height/2 - c.zone.y - c.zone.height/2) < 1, 'image not centered vertically');
+          assert.ok(Math.abs(c.image.width/c.image.height - c.naturalWidth/c.naturalHeight) < .01, 'image distorted');
+          assert.ok(c.image.width <= c.naturalWidth + 1, 'image enlarged beyond natural size');
+          assert.equal(c.fit, 'contain');
+          if (i + columns < cards.length) assert.ok(c.meta.bottom < cards[i + columns].zone.y, 'rows overlap');
+        }
+      };
+      const screenshot = async name => {
+        const clip = await evaluate(`(() => {const r=document.querySelector('.art-grid').getBoundingClientRect();return {x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:r.height,scale:1};})()`);
+        const capture = await send('Page.captureScreenshot', { format:'png', captureBeyondViewport:true, clip });
+        fs.writeFileSync(`.angular/artwork-cards-${name}.png`, Buffer.from(capture.data,'base64'));
+      };
+      for (const route of ['/obra/catalogo', '/obra/coleccion/serie']) {
+        await navigate(route);
+        for (const [width, columns, name] of [[1440,4,'desktop'],[820,2,'tablet'],[390,1,'mobile']]) {
+          await send('Emulation.setDeviceMetricsOverride', {width,height:900,deviceScaleFactor:1,mobile:false});
+          await loaded();
+          await check(columns);
+          if (route === '/obra/catalogo') await screenshot(name);
+          console.log(`Cards ${route} ${width}px: portrait/landscape/mixed, title and metadata alignment, proportions, centering and no overflow passed`);
+        }
+      }
+      await send('Emulation.setDeviceMetricsOverride', {width:1440,height:900,deviceScaleFactor:1,mobile:false});
+      await evaluate('document.querySelector(".art-card").scrollIntoView({block:"center"})');
+      const before = await metrics();
+      const c = before[0].zone;
+      await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:c.x+c.width/2,y:c.y+c.height/2});
+      await delay(300);
+      const after = await metrics();
+      assert.deepEqual(after.map(c=>[c.card,c.zone,c.title,c.meta]),before.map(c=>[c.card,c.zone,c.title,c.meta]),'hover shifts layout');
+      assert.ok(Math.abs(after[0].image.width/before[0].image.width - 1.02) < .001);
+      assert.ok(after[0].image.x >= c.x && after[0].image.right <= c.right && after[0].image.y >= c.y && after[0].image.bottom <= c.bottom, 'hover clips painting');
+      await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+      assert.equal(await evaluate('getComputedStyle(document.querySelector(".art-card img")).transform'),'none');
+      await evaluate('document.querySelector(".art-card").focus()');
+      assert.equal(await evaluate('getComputedStyle(document.querySelector(".art-image-wrap")).outlineStyle'),'solid');
+      await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',text:'\r',windowsVirtualKeyCode:13});
+      await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+      await waitFor('!!document.querySelector(".lightbox")');
+      await evaluate('document.querySelector(".lb-close").click()');
+      // Exercise mixed formats in the four-item collection preview as well.
+      works.forEach((w,i)=>{w.mainImageUrl=mixed[i%4];});
+      await navigate('/obra');
+      await loaded();
+      await check(4);
+      await screenshot('collection-preview');
+      await evaluate('document.querySelector(".art-card").click()');
+      await waitFor('!!document.querySelector(".lightbox")');
+      console.log('Cards hover 1.02 without clipping/layout shift, reduced motion, keyboard/detail and collection preview passed');
+      return;
+    }
     await navigate('/obra');
     assert.deepEqual(await evaluate('[...document.querySelectorAll(".collection-preview")].map(s=>s.querySelectorAll(".art-card").length)'), [4, 2]);
     for (const width of [1440, 820, 390]) {
