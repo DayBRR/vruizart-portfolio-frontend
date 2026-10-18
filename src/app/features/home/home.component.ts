@@ -10,6 +10,8 @@ import {
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
+import { ArtworkViewerComponent } from '../../shared/artwork-viewer/artwork-viewer.component';
+import { PageLoaderComponent } from '../../shared/page-loader/page-loader.component';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { PortfolioApiService } from '../../core/services/portfolio-api.service';
@@ -27,14 +29,12 @@ import {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, HeaderComponent, FooterComponent],
+  imports: [PageLoaderComponent, ArtworkViewerComponent, RouterLink, HeaderComponent, FooterComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly portfolioApi = inject(PortfolioApiService);
-
-  selectedImageIndex = 0;
 
   profile: ArtistProfile = {
     name: '',
@@ -164,19 +164,20 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const firstImageUrl = this.heroSlides[0]?.imageUrl;
 
     if (!firstImageUrl) {
-      this.loading = false;
+      this.heroImageLoaded = true;
+      this.updateLoadingState();
       return;
     }
 
     const image = new Image();
 
-    image.onload = () => {
-      this.loading = false;
+    const finishLoading = () => {
+      this.heroImageLoaded = true;
+      this.updateLoadingState();
+      setTimeout(() => this.updateAll(), 0);
     };
-
-    image.onerror = () => {
-      this.loading = false;
-    };
+    image.onload = finishLoading;
+    image.onerror = finishLoading;
 
     image.src = firstImageUrl;
   }
@@ -364,30 +365,17 @@ private formatExhibitionDate(
     this.selectedArtwork = undefined;
   }
 
-  get selectedImageUrl(): string {
-    if (!this.selectedArtwork) {
-      return '';
-    }
-
-    return (
-      this.selectedArtwork.mainImageUrl ??
-      this.selectedArtwork.images?.[0]?.imageUrl ??
-      ''
-    );
+  get viewerArtworks(): ArtworkResponse[] {
+    return [...this.featuredArtworkDetails.values()];
   }
 
-  get selectedImageAlt(): string {
-    return this.selectedArtwork?.title ?? 'Obra de Vicente Ruiz';
-  }
-
-  getDimensions(artwork: ArtworkResponse): string {
-    if (!artwork.widthCm || !artwork.heightCm) {
-      return '—';
+  get viewerAdditionalFacts(): { label: string; value: string }[] {
+    if (!this.selectedArtwork) return [];
+    const facts = [{ label: 'Estado', value: this.getStatusLabel(this.selectedArtwork.status) }];
+    if (this.selectedArtwork.price !== undefined && this.selectedArtwork.price !== null) {
+      facts.push({ label: 'Precio', value: this.formatPrice(this.selectedArtwork.price) });
     }
-
-    return `${this.formatNumber(artwork.widthCm)} × ${this.formatNumber(
-      artwork.heightCm
-    )} cm`;
+    return facts;
   }
 
   getStatusLabel(status: string): string {
@@ -422,14 +410,6 @@ private formatExhibitionDate(
       currency: 'EUR',
       maximumFractionDigits: 0
     }).format(price);
-  }
-
-  private formatNumber(value: number): string {
-    return Number.isInteger(value)
-      ? value.toString()
-      : value.toLocaleString('es-ES', {
-          maximumFractionDigits: 2
-        });
   }
 
   openPoster(url?: string): void {

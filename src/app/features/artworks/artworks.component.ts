@@ -6,19 +6,19 @@ import { EMPTY, catchError, combineLatest, forkJoin, map, of, Subscription, swit
 
 import {
   ArtistProfile,
-  ArtworkImageResponse,
   ArtworkResponse,
   CollectionResponse,
   PageResponse
 } from '../../core/models/portfolio.models';
 import { PortfolioApiService } from '../../core/services/portfolio-api.service';
+import { ArtworkViewerComponent } from '../../shared/artwork-viewer/artwork-viewer.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { HeaderComponent } from '../../shared/header/header.component';
 import { PageLoaderComponent } from '../../shared/page-loader/page-loader.component';
 @Component({
   selector: 'app-artworks',
   standalone: true,
-  imports: [NgTemplateOutlet, RouterLink, HeaderComponent, FooterComponent,
+  imports: [ArtworkViewerComponent, NgTemplateOutlet, RouterLink, HeaderComponent, FooterComponent,
   PageLoaderComponent],
   templateUrl: './artworks.component.html',
   styleUrl: './artworks.component.scss'
@@ -58,7 +58,7 @@ export class ArtworksComponent implements OnInit {
 
   selectedCollection = 'all';
   selectedArtwork?: ArtworkResponse;
-  selectedImageIndex = 0;
+  viewerArtworks: ArtworkResponse[] = [];
 
   get selectedCollectionData(): CollectionResponse | undefined {
     if (this.selectedCollection === 'all') {
@@ -299,112 +299,14 @@ export class ArtworksComponent implements OnInit {
     this.loadArtworksPage(page);
   }
 
-  openArtwork(artwork: ArtworkResponse): void {
+  openArtwork(artwork: ArtworkResponse, context?: ArtworkResponse[]): void {
+    this.viewerArtworks = context ?? [artwork];
     this.selectedArtwork = artwork;
-    this.selectedImageIndex = Math.max(0, this.selectedArtworkImages.findIndex(image => image.main));
   }
 
   closeArtwork(): void {
     this.selectedArtwork = undefined;
-    this.selectedImageIndex = 0;
-  }
-
-  previousImage(): void {
-    const images =
-      this.selectedArtworkImages;
-
-    if (images.length <= 1) {
-      return;
-    }
-
-    this.selectedImageIndex =
-      (
-        this.selectedImageIndex -
-        1 +
-        images.length
-      ) %
-      images.length;
-  }
-
-  nextImage(): void {
-    const images =
-      this.selectedArtworkImages;
-
-    if (images.length <= 1) {
-      return;
-    }
-
-    this.selectedImageIndex =
-      (
-        this.selectedImageIndex + 1
-      ) %
-      images.length;
-  }
-
-  selectImage(index: number): void {
-    if (
-      index < 0 ||
-      index >=
-        this.selectedArtworkImages.length
-    ) {
-      return;
-    }
-
-    this.selectedImageIndex = index;
-  }
-
-  get selectedArtworkImages():
-    ArtworkImageResponse[] {
-    if (!this.selectedArtwork) {
-      return [];
-    }
-
-    const images = [
-      ...(this.selectedArtwork.images ?? [])
-    ].sort(
-      (a, b) =>
-        a.sortOrder - b.sortOrder
-    );
-
-    if (
-      this.selectedArtwork.mainImageUrl &&
-      !images.some(
-        (image) =>
-          image.imageUrl ===
-          this.selectedArtwork?.mainImageUrl
-      )
-    ) {
-      images.unshift({
-        imageUrl:
-          this.selectedArtwork.mainImageUrl,
-        altText:
-          this.selectedArtwork.title,
-        sortOrder: -1,
-        main: true
-      });
-    }
-
-    return images;
-  }
-
-  get selectedImageUrl(): string {
-    return (
-      this.selectedArtworkImages[
-        this.selectedImageIndex
-      ]?.imageUrl ??
-      this.selectedArtwork?.mainImageUrl ??
-      ''
-    );
-  }
-
-  get selectedImageAlt(): string {
-    return (
-      this.selectedArtworkImages[
-        this.selectedImageIndex
-      ]?.altText ??
-      this.selectedArtwork?.title ??
-      'Obra de Vicente Ruiz'
-    );
+    this.viewerArtworks = [];
   }
 
   getArtworkImage(
@@ -422,33 +324,4 @@ export class ArtworksComponent implements OnInit {
     );
   }
 
-  getDimensions(
-    artwork: ArtworkResponse
-  ): string {
-    if (
-      artwork.widthCm &&
-      artwork.heightCm
-    ) {
-      return `${this.formatNumber(
-        artwork.widthCm
-      )} × ${this.formatNumber(
-        artwork.heightCm
-      )} cm`;
-    }
-
-    return '—';
-  }
-
-  private formatNumber(
-    value: number
-  ): string {
-    return Number.isInteger(value)
-      ? value.toString()
-      : value.toLocaleString(
-          'es-ES',
-          {
-            maximumFractionDigits: 2
-          }
-        );
-  }
 }
