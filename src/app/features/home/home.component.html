@@ -90,8 +90,7 @@
  @for (collection of collections; track collection.slug) {
     <a
       class="collection"
-      [routerLink]="['/obra']"
-      [queryParams]="{ collection: collection.slug }"
+      [routerLink]="['/obra/coleccion', collection.slug]"
     >
       <img
         [src]="collection.imageUrl"
@@ -120,7 +119,7 @@
   </div>
 </section>
 
-<section class="featured"><div class="section-head"><div class="heading"><h2>Obras destacadas</h2><span></span></div><a class="more" routerLink="/obra">Ver toda la obra &nbsp;→</a></div>
+<section class="featured"><div class="section-head"><div class="heading"><h2>Obras destacadas</h2><span></span></div><a class="more" routerLink="/obra/catalogo">Ver toda la obra &nbsp;→</a></div>
  <div #featuredStrip class="feature-strip" (scroll)="update('featured')" aria-label="Obras destacadas de Vicente Ruiz">
   @for (work of featuredArtworks; track work.slug) {
     <article

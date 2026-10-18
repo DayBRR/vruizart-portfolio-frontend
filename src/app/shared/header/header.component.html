@@ -5,7 +5,7 @@
 
   <nav class="nav" aria-label="Navegación principal">
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
-    <a routerLink="/obra" routerLinkActive="active">Obra</a>
+    <a routerLink="/obra" routerLinkActive="active">Galería</a>
     <a routerLink="/exposiciones" routerLinkActive="active">Exposiciones</a>
     <a routerLink="/publicaciones" routerLinkActive="active">Dónde encontrarme</a>
     <a routerLink="/sobre-mi" routerLinkActive="active">Sobre mí</a>
@@ -34,7 +34,7 @@
 
   <nav id="mobile-menu" class="mobile-menu" [class.open]="menuOpen" aria-label="Navegación móvil">
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a>
-    <a routerLink="/obra" routerLinkActive="active" (click)="closeMenu()">Obra</a>
+    <a routerLink="/obra" routerLinkActive="active" (click)="closeMenu()">Galería</a>
     <a routerLink="/exposiciones" routerLinkActive="active" (click)="closeMenu()">Exposiciones</a>
     <a routerLink="/publicaciones" routerLinkActive="active" (click)="closeMenu()">Dónde encontrarme</a>
     <a routerLink="/sobre-mi" routerLinkActive="active" (click)="closeMenu()">Sobre mí</a>
