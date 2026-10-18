@@ -14,8 +14,8 @@
 }
 
 .page-loading-brand {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 20px;
+  font-family:var(--font-heading);
+  font-size:var(--text-brand);
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
@@ -40,7 +40,7 @@
 }
 
 .page-loading-text {
-  font-size: 8px;
+  font-size:var(--text-label);
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: #706a62;

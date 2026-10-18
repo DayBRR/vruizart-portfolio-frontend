@@ -6,9 +6,9 @@
   position: relative;
   z-index: 100;
   height: 68px;
-  padding: 0 60px;
+  padding: 0 clamp(20px, 4vw, 60px);
   display: grid;
-  grid-template-columns: 283px minmax(0, 1fr) 64px;
+  grid-template-columns: clamp(190px, 22vw, 283px) minmax(0, 1fr) 46px;
   align-items: center;
   background: linear-gradient(90deg, #615d57 0 343px, #aaa59e 343px 100%);
 }
@@ -18,8 +18,8 @@
   align-items: center;
   height: 100%;
   color: #fff;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 23px;
+  font-family:var(--font-heading);
+  font-size:var(--text-brand);
   line-height: 1;
   letter-spacing: 0.20em;
   text-transform: uppercase;
@@ -30,12 +30,14 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 24px;
+  gap: clamp(12px, calc(12px + (100vw - 901px) * 0.08), 30px);
   height: 100%;
   min-width: 0;
-  padding-left: 28px;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 12px;
+  padding-left: clamp(8px, 1.5vw, 28px);
+  font-family:var(--font-body);
+  font-size:var(--text-nav);
+  font-weight: 500;
+  color: #252525;
   white-space: nowrap;
 }
 
@@ -47,6 +49,7 @@
   padding: 0;
   color: inherit;
   text-decoration: none;
+  transition: color var(--interaction-duration) ease;
 }
 
 .nav a::after {
@@ -58,12 +61,17 @@
   height: 1px;
   background: currentColor;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--interaction-duration) ease;
 }
 
 .nav a:hover::after,
+.nav a:focus-visible::after,
 .nav a.active::after {
   opacity: 1;
+}
+
+.nav a:is(:hover,:focus-visible) {
+  color: #111;
 }
 
 .header-logo {
@@ -103,7 +111,7 @@
   }
 
   .logo {
-    font-size: 21px;
+    font-size:var(--text-brand);
   }
 
   .nav {
@@ -194,9 +202,12 @@
     min-height: 56px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     color: #fff;
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 18px;
+    font-family:var(--font-body);
+    font-size:var(--text-nav);
+    font-weight: 500;
     text-decoration: none;
+    transition: color var(--interaction-duration) ease,
+      text-decoration-color var(--interaction-duration) ease;
   }
 
   .mobile-menu a::after {
@@ -207,6 +218,11 @@
 
   .mobile-menu a.active {
     color: #f2e7d2;
+  }
+
+  .mobile-menu a:is(:hover,:focus-visible) {
+    color: #f2e7d2;
+    text-decoration: underline;
   }
 }
 
@@ -220,7 +236,7 @@
 
   .logo {
     overflow: hidden;
-    font-size: 19px;
+    font-size:var(--text-brand);
     letter-spacing: 0.15em;
     text-overflow: ellipsis;
   }
@@ -248,12 +264,14 @@
 
   .mobile-menu a {
     min-height: 54px;
-    font-size: 17px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .menu-toggle span,
+  .nav a,
+  .nav a::after,
+  .mobile-menu a,
   .mobile-menu,
   .mobile-menu-backdrop {
     transition: none;

@@ -1,3 +1,5 @@
+@use '../../../styles/hero';
+
 :host {
   display: block;
   min-height: 100vh;
@@ -16,7 +18,7 @@
 h1,
 h2 {
   margin: 0;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-heading);
   font-weight: 400;
 }
 
@@ -37,7 +39,7 @@ img {
 
 .micro,
 .eyebrow {
-  font-size: 9px;
+  font-size:var(--text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
@@ -46,11 +48,12 @@ img {
 .hero {
   display: grid;
   grid-template-columns: 343px 1fr;
-  height: 300px;
+  @include hero.frame(var(--hero-profile-height), 760px);
   background: #efede8;
 }
 
 .hero-copy {
+  @include hero.copy;
   padding: 57px 48px 40px 63px;
   background: #615d57;
   color: #fff;
@@ -62,16 +65,15 @@ img {
 
 .hero-copy h1 {
   margin: 15px 0 18px;
-  font-size: 49px;
-  line-height: 0.96;
+  line-height:var(--leading-heading);
 }
 
 .hero-description {
   max-width: 245px;
   color: #f1ede7;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 13px;
-  line-height: 1.58;
+  font-family:var(--font-body);
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
 }
 
 .hero-image {
@@ -80,6 +82,8 @@ img {
 }
 
 .hero-image img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -105,8 +109,8 @@ img {
 }
 
 .intro h2 {
-  font-size: 33px;
-  line-height: 1.03;
+  font-size:var(--text-section);
+  line-height:var(--leading-heading);
 }
 
 .intro h2::after {
@@ -122,9 +126,9 @@ img {
   max-width: 600px;
   margin-top: 3px;
   color: #5e5851;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 14px;
-  line-height: 1.65;
+  font-family:var(--font-body);
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
 }
 
 /* CONTACT DETAILS */
@@ -164,13 +168,13 @@ img {
 .contact-label {
   padding-top: 4px;
   color: #827a71;
-  font-size: 8px;
+  font-size:var(--text-label);
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
 .contact-value {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family:var(--font-body);
   font-size: 19px;
   line-height: 1.25;
 }
@@ -189,8 +193,8 @@ img {
   display: block;
   margin-top: 4px;
   color: #8a8279;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 8px;
+  font-family:var(--font-body);
+  font-size:var(--text-label);
   letter-spacing: 0.11em;
   text-transform: uppercase;
 }
@@ -210,15 +214,15 @@ img {
 
 .contact-side h2 {
   margin: 9px 0 12px;
-  font-size: 28px;
-  line-height: 1.04;
+  font-size:var(--text-section);
+  line-height:var(--leading-heading);
 }
 
 .contact-side-copy {
   margin-bottom: 22px;
   color: #eee9e2;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 12.5px;
+  font-family:var(--font-body);
+  font-size:var(--text-small);
   line-height: 1.55;
 }
 
@@ -232,7 +236,7 @@ img {
   padding: 7px 9px;
   border: 1px solid rgba(255, 255, 255, 0.33);
   color: #f0ebe4;
-  font-size: 7px;
+  font-size:var(--text-label);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -253,17 +257,17 @@ img {
 
 .instagram-copy h2 {
   margin: 9px 0 15px;
-  font-size: 34px;
-  line-height: 1.05;
+  font-size:var(--text-section);
+  line-height:var(--leading-heading);
 }
 
 .instagram-copy > p:not(.eyebrow) {
   max-width: 560px;
   margin-bottom: 18px;
   color: #5f5952;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 14px;
-  line-height: 1.62;
+  font-family:var(--font-body);
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
 }
 
 .insta-link {
@@ -272,8 +276,8 @@ img {
   gap: 10px;
   padding-bottom: 5px;
   border-bottom: 1px solid #3d3833;
-  font-size: 9px;
-  letter-spacing: 0.15em;
+
+
   text-transform: uppercase;
 }
 
@@ -295,7 +299,7 @@ img {
   display: block;
   margin-top: 12px;
   color: #71695f;
-  font-size: 7px;
+  font-size:var(--text-label);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -346,7 +350,6 @@ img {
 
 @media (max-width: 760px) {
   .hero {
-    height: auto;
     grid-template-columns: 1fr;
   }
 
@@ -354,16 +357,13 @@ img {
     padding: 42px 28px;
   }
 
-  .hero-copy h1 {
-    font-size: 46px;
-  }
 
   .hero-description {
     max-width: 360px;
   }
 
   .hero-image {
-    height: 280px;
+    height: 220px;
   }
 
   .intro {
@@ -405,12 +405,9 @@ img {
     padding: 38px 22px 40px;
   }
 
-  .hero-copy h1 {
-    font-size: 42px;
-  }
 
   .hero-image {
-    height: 230px;
+    height: 200px;
   }
 
   .intro,

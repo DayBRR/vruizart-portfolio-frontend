@@ -21,8 +21,8 @@
   <main class="page">
 
 
+<app-header />
 <section class="hero">
-  <app-header />
 
   <div
     class="hero-art hero-carousel"
@@ -41,8 +41,12 @@
     }
   </div>
 
-  @if (currentHeroSlide; as slide) {
-    <div class="hero-copy">
+  <div class="hero-content">
+  @for (slide of heroSlides; track slide.key; let i = $index) {
+    <div class="hero-copy"
+      [class.is-active]="i === currentHero"
+      [attr.aria-hidden]="i === currentHero ? null : 'true'"
+      [attr.inert]="i === currentHero ? null : ''">
 
       @if (slide.subtitle) {
         <div class="micro">
@@ -69,6 +73,7 @@
 
     </div>
   }
+  </div>
 
   @if (heroSlides.length) {
     <div class="counter">
@@ -104,7 +109,16 @@
  <button class="collection-scroll collection-next" [class.is-hidden]="!collectionNextVisible" type="button" (click)="move('collections',1)" aria-label="Ver más colecciones">→</button>
 </section>
 
-<section class="about"><div class="about-copy"><h2>Sobre mí</h2><p>{{profile.bio}}</p><a class="btn" routerLink="/sobre-mi">Conocer más &nbsp;→</a></div><div class="about-img"><img [src]="profile.profileImageUrl" alt="Vicente Ruiz trabajando en su estudio"></div><div class="quote"><blockquote>“{{profile.quote}}”</blockquote><div class="author">Vicente Ruiz</div><div class="qrule"></div></div></section>
+<section class="about">
+  <div class="about-copy">
+    <h2>Sobre mí</h2>
+    <p>{{profile.bio}}</p>
+    <a class="btn" routerLink="/sobre-mi">Conocer más &nbsp;→</a>
+  </div>
+  <div class="about-img">
+    <img [src]="profile.profileImageUrl" alt="Vicente Ruiz trabajando en su estudio">
+  </div>
+</section>
 
 <section class="featured"><div class="section-head"><div class="heading"><h2>Obras destacadas</h2><span></span></div><a class="more" routerLink="/obra">Ver toda la obra &nbsp;→</a></div>
  <div #featuredStrip class="feature-strip" (scroll)="update('featured')" aria-label="Obras destacadas de Vicente Ruiz">

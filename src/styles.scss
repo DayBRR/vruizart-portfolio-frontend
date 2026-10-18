@@ -1,5 +1,99 @@
-:root{--page-max-width:1280px}
-html,body{margin:0;min-height:100%;background:#d6d2cc}body{font-family:Arial,Helvetica,sans-serif}*{box-sizing:border-box}
+:root {
+  --page-max-width: 1280px;
+  --font-heading: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Inter', Arial, sans-serif;
+  --text-hero: clamp(56px, 5vw, 64px);
+  --text-hero-compact: 56px;
+  --text-section: clamp(38px, 3.4vw, 44px);
+  --text-card: clamp(20px, 2vw, 24px);
+  --text-body: clamp(17px, 1.4vw, 18px);
+  --text-small: 14px;
+  --text-label: 11px;
+  --text-button: 12px;
+  --text-nav: 14px;
+  --text-brand: 24px;
+  --text-quote: clamp(26px, 2.6vw, 34px);
+  --leading-heading: 1.08;
+  --leading-body: 1.6;
+  --space-text: 16px;
+  --space-action: 24px;
+  --action-tracking: 0.08em;
+  --interaction-duration: 160ms;
+  --hero-home-height: 520px;
+  --hero-gallery-height: 440px;
+  --hero-profile-height: 400px;
+}
+
+@media (max-width: 900px) {
+  :root {
+    --text-hero: clamp(48px, 6.2vw, 56px);
+    --text-hero-compact: var(--text-hero);
+    --text-section: 36px;
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --text-hero: clamp(40px, 10vw, 48px);
+    --text-hero-compact: var(--text-hero);
+    --text-section: 32px;
+    --text-card: 22px;
+    --text-body: 17px;
+    --text-brand: 22px;
+    --space-action: 20px;
+  }
+}
+
+html,body{margin:0;min-height:100%;background:#d6d2cc}
+body{font-family:var(--font-body);font-size:var(--text-body);line-height:var(--leading-body)}
+*{box-sizing:border-box}
+h1,h2,h3,h4,blockquote{font-family:var(--font-heading);font-weight:400;line-height:var(--leading-heading)}
+h1{font-size:var(--text-hero);letter-spacing:-.02em}
+h2{font-size:var(--text-section)}
+h3,h4{font-size:var(--text-card)}
+p{line-height:var(--leading-body)}
+p + p{margin-top:var(--space-text)}
+button,input,select,textarea{font-family:var(--font-body)}
+
+// Shared typography for text actions; component styles retain their colours and surfaces.
+.btn,.cta-btn,.text-link,.pdf-btn,.external-link,.insta-link,
+.more,.detail,.collection-copy span,.chip,.pagination-btn,.pagination-page {
+  font-family: var(--font-body);
+  font-size: var(--text-button);
+  font-weight: 500;
+  letter-spacing: var(--action-tracking);
+  transition: color var(--interaction-duration) ease,
+    background-color var(--interaction-duration) ease,
+    border-color var(--interaction-duration) ease,
+    text-decoration-color var(--interaction-duration) ease;
+}
+
+:where(a,button,input,select,textarea,[role='button']) {
+  text-underline-offset: 0.25em;
+  text-decoration-thickness: 1px;
+}
+
+:where(a,button,input,select,textarea,[tabindex]):focus-visible {
+  outline: 2px solid #252525;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px #fbfaf7;
+}
+
+:is(.btn,.cta-btn,.text-link,.pdf-btn,.external-link,.insta-link,.more):hover:not(:disabled):not([aria-disabled='true']),
+:is(.btn,.cta-btn,.text-link,.pdf-btn,.external-link,.insta-link,.more):focus-visible:not(:disabled):not([aria-disabled='true']),
+.collection:hover .collection-copy span,
+.collection:focus-visible .collection-copy span,
+.featured-work:hover .detail,
+.featured-work:focus-visible .detail {
+  text-decoration-line: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,.cta-btn,.text-link,.pdf-btn,.external-link,.insta-link,
+  .more,.detail,.collection-copy span,.chip,.pagination-btn,.pagination-page {
+    transition: none;
+  }
+}
 
 .navigation-progress {
   position: fixed;
